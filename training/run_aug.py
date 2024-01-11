@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 
 #retrieve data in the index
 import numpy as np 
@@ -19,10 +19,10 @@ configs = [
           {
 'name': f'time{t}.{i}',
 'img_pixel_size': (128,128),
-'optimizer': tf.keras.optimizers.SGD(learning_rate=0.0001, momentum=0.9),
+'optimizer': tf.keras.optimizers.legacy.SGD(learning_rate=0.0001, momentum=0.9),
 'activation': 'leaky_relu',
 'smoothing': True,
-'beam_pixel_size': 3,
+'beam_pixel_size': 2,
 'model_name': 'oldarch_DA',
 'dropout': (0,0,0,0.1, 0.1, 0.1), #6 values needed for simpleCNN
 'early_stopping': True,
@@ -30,12 +30,13 @@ configs = [
 'batch_size':16,
 'seed': 47656344%(i+1),
 'filename': f'dust1dens{t}.dat'
-} for i, t in itertools.product(range(n_i,n_f), ['all'])]
+} for i, t in itertools.product(range(n_i,n_f), [1000])]
 
-data_path = 'training_data/augmented_RTtime'
-para_file = f'{data_path}para_labelled.csv'
-times = [500, 1000, 1500]
-saving_folder='../trained/alltRT'
+
+data_path = 'training_data/final_allt/final'
+#para_file = f'{data_path}para_labelled.csv'
+times = [500,1000, 1500]
+saving_folder='trained/final_allt'
 
 if not os.path.exists(saving_folder):
     os.mkdir(saving_folder)
@@ -49,9 +50,8 @@ def main():
 
     for parameters in configs:
 
-        start_time = time.time()
-        for fold_no in range(1,6):
-            
+        for fold_no in [1,2,3,4,5]:
+            start_time = time.time()
             train_inp = np.concatenate([np.expand_dims(data[f'time{t}'][f'inp_train{fold_no}'], axis=3) for t in times], axis=0)
             target_train = np.concatenate([data[f'time{t}'][f'targ_train{fold_no}'].reshape(-1) for t in times], axis=0)
             test_inp = np.concatenate([np.expand_dims(data[f'time{t}'][f'inp_test{fold_no}'], axis=3) for t in times], axis=0)
@@ -108,9 +108,8 @@ def main():
             #save score
             with open(f"{saving_folder}/scores.data", "a") as scores_file:
                 #img size, fold, mse, mae
-                scores_file.write(f"{parameters['name']},  {fold_no}, {scores_train['loss']}, {scores_test['loss']}\n")
+                scores_file.write(f"{parameters['name']},  {fold_no}, {scores_train['loss']}, {scores_test['loss']}, {time.time()-start_time}\n")
             
-            fold_no = fold_no + 1
 
         #save configuration
         parameters['wall_time'] = time.time()-start_time
