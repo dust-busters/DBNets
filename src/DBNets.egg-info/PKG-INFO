@@ -1,0 +1,26 @@
+Metadata-Version: 2.1
+Name: DBNets
+Version: 1.0.0
+Summary: Dust Busters Nets - Deep learning tool for mass inference of gap opening planets in dusty discs.
+Author: Giuseppe Lodato, Giovanni Pietro Rosotti
+Author-email: Alessandro Ruzza <alessandro.ruzza@unimi.it>
+Project-URL: Homepage, https://github.com/aleruzza/DBNets
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU GPLv3 License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# DBNets
+Dust Busters Nets - Ensemble of NNs trained to infer the mass of gap opening planets in protoplanetary discs
+
+## To install this library
+
+1) open a terminal
+
+2) clone the repository with `git clone https://github.com/dust-busters/DBNets.git` 
+
+2) enter the new directory with `cd DBNets`
+
+3) install the library with `pip install .`

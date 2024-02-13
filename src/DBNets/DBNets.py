@@ -77,10 +77,15 @@ class DBNets:
     # an instantiated object of the custom pdf class 
     # internally storing all the information needed for its definition
     # Return also the median and the width. (log or lin?)
-    def measure(self, image, dropout_augm=1, ens_type='peers') -> 'p(log m | x, t)':
+    def measure(self, image, dropout_augm=1, ens_type='peers', debug=False) -> 'p(log m | x, t)':
     
         image = image.reshape(-1, 128, 128, 1)
-        pred = np.array([model(image, training=dropout_augm>1) 
+        if debug:
+            pred = np.array([model(image, training=dropout_augm>1) 
+                         for _, model in 
+                         tqdm(it.product(range(dropout_augm), self.models))]).reshape(-1, len(image), 2)
+        else:
+            pred = np.array([model(image, training=dropout_augm>1) 
                          for _, model in 
                          it.product(range(dropout_augm), self.models)]).reshape(-1, len(image), 2)
 
