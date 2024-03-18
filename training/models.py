@@ -9,6 +9,7 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import RandomTranslation
+from tensorflow.keras.layers import RandomFlip
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import GaussianNoise
 from tensorflow.keras.layers import Add
@@ -47,11 +48,64 @@ def venus(input_shape=(64,64,1), act='leaky_relu', dropout=(0, 0, 0, 0.3, 0.3, 0
 
     # augmentation and standardization
     x = RandomTranslation(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode='nearest')(inputs)
-    x = LayerNormalization(axis=[1,2])(inputs)
+    x = LayerNormalization(axis=[1,2])(x)
     x = GaussianNoise(0.01)(x)
 
     #first block
-    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(inputs)
+    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
+    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
+
+    x = LayerNormalization(axis=[1,2])(x)
+
+    #second block
+    x = Conv2D(32, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
+    x = Conv2D(32, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b2_p')(x)
+
+    x = LayerNormalization(axis=[1,2])(x)
+
+    #third block
+    x = Conv2D(64, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
+    x = Conv2D(64, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b3_p')(x)
+ 
+    x = LayerNormalization(axis=[1,2])(x)
+    
+    #dense layers
+    x = Flatten(name='flatten')(x)
+    x = Dropout(dropout[3])(x)
+    x = Dense(256, activation=act, name='FC1', kernel_initializer=initializer)(x)
+    x = Dropout(dropout[4])(x)
+    x1 = Dense(128, activation=act, name='FC2', kernel_initializer=initializer)(x)
+    
+    #output
+    mean = Dense(1, activation='linear', name='o_mean')(x1)
+    std = Dense(1, activation='softplus', name='o_std')(x1)
+
+    outLayer = Concatenate(axis=-1)([mean,std])
+    
+    simplecnn = Model(inputs, outLayer)
+
+    return simplecnn
+
+
+def venus_RI(input_shape=(64,64,1), act='leaky_relu', dropout=(0, 0, 0, 0.3, 0.3, 0.3), seed=0, noise=0):
+
+    #initializer
+    initializer = tf.keras.initializers.HeNormal(seed=seed)
+
+    #define inputs
+    inputs = Input(shape=input_shape)
+
+    # augmentation and standardization
+    x = RandomFlip(mode="horizontal_and_vertical", seed=8365)(inputs)
+    x = RandomTranslation(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode='nearest')(x)
+    x = LayerNormalization(axis=[1,2])(x)
+    x = GaussianNoise(0.01)(x)
+
+    #first block
+    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
     x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
     x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
 
