@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import itertools as it
+from .training import train
 from scipy.special import ndtr 
 from scipy.stats import rv_continuous
 from scipy.stats import norm
@@ -119,6 +120,21 @@ class DBNets:
         saliencymap = np.average(saliency_maps, axis=0, weights=self.weights[t]).reshape(128,128)
         
         return saliencymap
+
+    
+    def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname):
+        folder = os.path.join(os.path.dirname(__file__), 'trained/', f'{ftname}')
+        if os.path.exists(folder):
+            print('Error! This fine tuned version already exists.')
+        else:
+            os.mkdir(folder)
+
+            print('starting fine tuning')
+            i=0
+            for m, f in tqdm(it.product(range(self.n_models), self.folds)):
+                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f)
+                i+=1
+
     
     
 
