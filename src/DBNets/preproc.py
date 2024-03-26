@@ -48,8 +48,9 @@ def deproject_image(
     pxscale=None,
     new_img_size=(128,128),
     new_rrif_pxpos=16,
-    mask=True
-    
+    mask=True,
+    smooth=True,
+    origninal_res=0
 ):
     
     #open image if is not a data
@@ -102,6 +103,11 @@ def deproject_image(
         mask_polar = np.ones((128,384))
         mask_cartesian = gaussian_filter(oofargo.warp_image_rolltodisk(mask_polar, target_image_size=(128,128), target_rmax=4, image_rmax=4),2)
         final_img = warped_img*mask_cartesian
+
+    if smooth:
+        newsmooth2 = 0.125**2-origninal_res**2
+        if newsmooth2 > 0:
+            final_img = gaussian_filter(final_image, np.sqrt(newsmooth2))
 
     final_img = (final_img-final_img.mean())/final_img.std()
 	
