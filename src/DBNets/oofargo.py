@@ -34,6 +34,9 @@ def warp_image_rolltodisk(data, ntheta=384, nr=128, image_rmin = 0.4, image_rmax
     #now all the padding are set to 0 
     inner_pad = int((nr*image_rmin)/(image_rmax-image_rmin))
     outer_pad = int((nr*(target_rmax-image_rmax))/(image_rmax-image_rmin))
+    if outer_pad<0:
+        rho = rho[:outer_pad,:]
+        outer_pad=0
     
     rho2 = np.pad(rho, ((inner_pad, outer_pad),(0,0)),'constant', constant_values=(0,)).transpose()
     
