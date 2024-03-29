@@ -10,7 +10,7 @@ from tf_keras_vis.saliency import Saliency
 from tqdm import tqdm
 import pkg_resources
 import os
-
+import re
 class DBNets:
     '''
     Dust Busters Nets: ensemble of Convolutional Neural Networks trained to infer the mass of possible planets embedded in protoplanetary discs.
@@ -95,7 +95,7 @@ class DBNets:
         
         w = np.repeat(self.weights, dropout_augm)
         p_pred = [sum_of_norm(logpred[:,i], data_unc_log[:,i], w, ensemble_type=ens_type) for i in range(0, len(image))]
-
+        
         if len(p_pred)==1:
             return p_pred[0]
         else:
@@ -125,15 +125,30 @@ class DBNets:
     def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname):
         folder = os.path.join(os.path.dirname(__file__), 'trained/', f'{ftname}')
         if os.path.exists(folder):
-            print('Error! This fine tuned version already exists.')
+            folders = os.listdir(folder)
+            mod = np.array([np.array(f.split('.')).astype(int) for f in folders if re.compile('\d.\d').match(f)])
+            max_model = np.max(mod[:,0])
+            max_fold = np.max([m[1] for m in mod if m[0]==max_model])
+            print(f'This fine tuned version already exists. Restarting, last found model {max_model} fold {max_fold}')
         else:
             os.mkdir(folder)
+            with open(f"{folder}/scores.data", "a") as scores_file:
+                scores_file.write(f"name,fold,train_score_old,test_score_old,train_score, test_score\n")
+            max_model = 0
+            max_fold = 0
 
             print('starting fine tuning')
-            i=0
+            i=-1
             for m, f in tqdm(it.product(range(self.n_models), self.folds)):
-                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f)
                 i+=1
+                if m<max_model:
+                    break
+                else:
+                    if m==max_model:
+                        if f <= max_fold:
+                            break
+                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f)
+                
 
     
     
