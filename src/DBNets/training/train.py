@@ -3,6 +3,7 @@ import numpy as np
 import os
 import pickle
 import tensorflow as tf
+import gc
 from keras.optimizers.legacy import Adam
 
 class CustomLossFineTune(tf.keras.losses.Loss):
@@ -74,3 +75,13 @@ def finetune(model, newdatax, newdatay, newdatax_test, newdatay_test, ftname, mo
     with open(f"{saving_folder}/scores.data", "a") as scores_file:
         scores_file.write(f"{ftname}{model_number},  {fold_no}, {scores_train_old['loss']}, {scores_test_old['loss']}, {scores_train_new['loss']}, {scores_test_new['loss']}\n")
     
+    del data
+    del train_inpf
+    del target_trainf
+    del test_inpf
+    del target_testf
+    del train_inp
+    del target_train
+    del test_inp
+    del target_test
+    gc.collect()
