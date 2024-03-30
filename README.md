@@ -9,6 +9,6 @@ Dust Busters Nets - Ensemble of NNs trained to infer the mass of gap opening pla
 
 2) enter the new directory with `cd DBNets`
    
-3) download all the lfs files with `git lfs fetch --all` 
+3) download all the lfs files with `git lfs pull` 
 
 5) install the library with `pip install .`
