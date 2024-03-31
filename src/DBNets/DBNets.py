@@ -122,7 +122,7 @@ class DBNets:
         return saliencymap
 
     
-    def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname):
+    def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname, memory=0.8, epochs=20):
         folder = os.path.join(os.path.dirname(__file__), 'trained/', f'{ftname}')
         if os.path.exists(folder):
             folders = os.listdir(folder)
@@ -147,7 +147,7 @@ class DBNets:
                     if m==max_model:
                         if f <= max_fold:
                             break
-                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f)
+                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f, memory=memory, epochs=epochs)
                 
 
     
