@@ -40,11 +40,12 @@ class DBNets:
     '''
 
 
-    def __init__(self, ensemble='final', n_models=10, folds=range(1,6)):
+    def __init__(self, ensemble='final', n_models=10, folds=range(1,6), threshold=0.25):
         #_init__
         #variables that need to be set in order for the ensemble to work properly
         self.ensemble = ensemble
         self.n_models = n_models 
+        self.threshold = threshold
         self.folds = np.array(folds)
 
         print('Initializing DBNets')
@@ -137,18 +138,18 @@ class DBNets:
             max_model = 0
             max_fold = 0
 
-            print('starting fine tuning')
-            i=-1
-            for m, f in tqdm(it.product(range(self.n_models), self.folds)):
-                i+=1
-                if m<max_model:
-                    break
-                else:
-                    if m==max_model:
-                        if f <= max_fold:
-                            break
-                train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f, memory=memory, epochs=epochs)
-                
+        print('starting fine tuning')
+        i=-1
+        for m, f in tqdm(it.product(range(self.n_models), self.folds)):
+            i+=1
+            if m<max_model:
+                continue
+            else:
+                if m==max_model:
+                    if f <= max_fold:
+                        continue
+            train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f, memory=memory, epochs=epochs)
+            
 
     
     
@@ -175,11 +176,12 @@ class sum_of_norm(rv_continuous):
 
     "Distribution generated from a sum of gaussians"
 
-    def __init__(self, locs, scales, weights, ensemble_type='peers'):
+    def __init__(self, locs, scales, weights, ensemble_type='peers', threshold=0.25):
         super().__init__()
         self.locs = np.array(locs).reshape(-1, 1)
         self.scales = np.array(scales).reshape(-1, 1)
         self.weights = np.array(weights).reshape(-1)
+        self.threshold=threshold
         self.set_ensemble_type(ensemble_type)
         self.set_reliability()
 
@@ -211,7 +213,7 @@ class sum_of_norm(rv_continuous):
     
     def set_reliability(self):
         temp = self.summary_measure(return_log=True)
-        self.reliable = ((temp[2]-temp[1])/2)<0.3
+        self.reliable = ((temp[2]-temp[1])/2)<self.threshold
     
     def summary_measure(self, equivalent_sigma=1, return_log=False):
         return extract_prediction(self, equivalent_sigma=1, return_log=return_log)
