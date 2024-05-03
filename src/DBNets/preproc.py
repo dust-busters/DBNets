@@ -107,7 +107,7 @@ def deproject_image(
     if smooth:
         newsmooth2 = 0.125**2-origninal_res**2
         if newsmooth2 > 0:
-            final_img = gaussian_filter(final_image, np.sqrt(newsmooth2))
+            final_img = gaussian_filter(final_img, np.sqrt(newsmooth2))
 
     final_img = (final_img-final_img.mean())/final_img.std()
 	
