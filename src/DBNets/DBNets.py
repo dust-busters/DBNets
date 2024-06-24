@@ -40,7 +40,7 @@ class DBNets:
     '''
 
 
-    def __init__(self, ensemble='final', n_models=10, folds=range(1,6), threshold=0.25):
+    def __init__(self, ensemble='finalRI', n_models=10, folds=range(1,6), threshold=0.25):
         #_init__
         #variables that need to be set in order for the ensemble to work properly
         self.ensemble = ensemble
