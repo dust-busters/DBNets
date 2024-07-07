@@ -22,7 +22,6 @@ dependencies = [
   "numpy",
   "pandas",
   "tensorflow",
-  "itertools",
   "scipy",
   "tf_keras_vis",
   "tqdm",
