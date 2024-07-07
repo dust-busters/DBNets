@@ -18,6 +18,19 @@ classifiers = [
     "License :: OSI Approved :: GNU GPLv3 License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  "numpy",
+  "pandas",
+  "tensorflow",
+  "itertools",
+  "scipy",
+  "tf_keras_vis",
+  "tqdm",
+  "pylab",
+  "importlib",
+  "opencv-python",
+  "astropy",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/aleruzza/DBNets"
