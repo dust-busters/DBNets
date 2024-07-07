@@ -26,7 +26,6 @@ dependencies = [
   "scipy",
   "tf_keras_vis",
   "tqdm",
-  "pylab",
   "importlib",
   "opencv-python",
   "astropy",
