@@ -6,6 +6,10 @@ import tensorflow as tf
 import gc
 from keras.optimizers.legacy import Adam
 
+#this is needed because I am using the legacy optimizer
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
+
 class CustomLossFineTune(tf.keras.losses.Loss):
   def __init__(self):
     super().__init__()
