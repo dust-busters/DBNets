@@ -23,6 +23,7 @@ dependencies = [
   "pandas",
   "tensorflow",
   "scipy",
+  "tf_keras",
   "tf_keras_vis",
   "tqdm",
   "opencv-python",
