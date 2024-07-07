@@ -4,7 +4,7 @@ import os
 import pickle
 import tensorflow as tf
 import gc
-from keras.optimizers.legacy import Adam
+from tf.keras.optimizers.legacy import Adam
 
 #this is needed because I am using the legacy optimizer
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
