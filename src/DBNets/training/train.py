@@ -8,7 +8,7 @@ import gc
 
 #this is needed because I am using the legacy optimizer
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
-from tf.keras.optimizers.legacy import Adam
+from keras.optimizers.legacy import Adam
 
 class CustomLossFineTune(tf.keras.losses.Loss):
   def __init__(self):
