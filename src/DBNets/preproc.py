@@ -50,7 +50,7 @@ def deproject_image(
     new_rrif_pxpos=16,
     mask=True,
     smooth=True,
-    origninal_res=0
+    original_res=0
 ):
     
     #open image if is not a data
@@ -105,9 +105,9 @@ def deproject_image(
         final_img = warped_img*mask_cartesian
 
     if smooth:
-        newsmooth2 = 0.125**2-origninal_res**2
+        newsmooth2 = 0.125**2-original_res**2
         if newsmooth2 > 0:
-            final_img = gaussian_filter(final_img, np.sqrt(newsmooth2))
+            final_img = gaussian_filter(final_img, np.sqrt(newsmooth2)*16)
 
     final_img = (final_img-final_img.mean())/final_img.std()
 	
