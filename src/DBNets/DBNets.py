@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import itertools as it
-from .training import train
+#from .training import train
 from scipy.special import ndtr 
 from scipy.stats import rv_continuous
 from scipy.stats import norm
@@ -14,7 +14,7 @@ import re
 class DBNets:
     '''
     Dust Busters Nets: ensemble of Convolutional Neural Networks trained to infer the mass of possible planets embedded in protoplanetary discs.
-    This class handles the ensemble allowig its application to observations. It can be used both with single or multiple images.
+    This class handles the ensemble allowing its application to observations. It can be used both with single or multiple images.
     Please note that in order to obtain reliable predictions the input image should be rescaled to match the scale, size and orientation of the images used to train the ensemble.
     We provide methods to do that through the submodule DBNets.preproc
     
@@ -122,7 +122,7 @@ class DBNets:
         
         return saliencymap
 
-    
+'''
     def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname, memory=0.8, epochs=20):
         folder = os.path.join(os.path.dirname(__file__), 'trained/', f'{ftname}')
         if os.path.exists(folder):
@@ -149,7 +149,7 @@ class DBNets:
                     if f <= max_fold:
                         continue
             train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f, memory=memory, epochs=epochs)
-            
+'''      
 
     
     
