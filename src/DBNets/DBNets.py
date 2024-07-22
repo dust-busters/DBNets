@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pkg_resources
 import os
 import re
+from pdfclass import sum_of_norm, extract_prediction
 class DBNets:
     '''
     Dust Busters Nets: ensemble of Convolutional Neural Networks trained to infer the mass of possible planets embedded in protoplanetary discs.
@@ -74,6 +75,7 @@ class DBNets:
     #return the weights used internally
     def get_weights(self):
         return self.weights
+    
 
     # Measuring function returning the inferred pdf as
     # an instantiated object of the custom pdf class 
@@ -121,102 +123,6 @@ class DBNets:
         saliencymap = np.average(saliency_maps, axis=0, weights=self.weights[t]).reshape(128,128)
         
         return saliencymap
-
-'''
-    def finetune(self, newdatax, newdatay, newdatax_test, newdatay_test, ftname, memory=0.8, epochs=20):
-        folder = os.path.join(os.path.dirname(__file__), 'trained/', f'{ftname}')
-        if os.path.exists(folder):
-            folders = os.listdir(folder)
-            mod = np.array([np.array(f.split('.')).astype(int) for f in folders if re.compile('\d.\d').match(f)])
-            max_model = np.max(mod[:,0])
-            max_fold = np.max([m[1] for m in mod if m[0]==max_model])
-            print(f'This fine tuned version already exists. Restarting, last found model {max_model} fold {max_fold}')
-        else:
-            os.mkdir(folder)
-            with open(f"{folder}/scores.data", "a") as scores_file:
-                scores_file.write(f"name,fold,train_score_old,test_score_old,train_score, test_score\n")
-            max_model = 0
-            max_fold = 0
-
-        print('starting fine tuning')
-        i=-1
-        for m, f in tqdm(it.product(range(self.n_models), self.folds)):
-            i+=1
-            if m<max_model:
-                continue
-            else:
-                if m==max_model:
-                    if f <= max_fold:
-                        continue
-            train.finetune(self.models[i], newdatax, newdatay, newdatax_test, newdatay_test, ftname, m, f, memory=memory, epochs=epochs)
-'''      
-
-    
-    
-
-# function that given the pdf and a reference prob. value returns
-# the best prediction and an estimation for the uncertainty
-def extract_prediction(logmrv, equivalent_sigma=1, return_log=False):
-    log_m_predicted = logmrv.ppf(0.5)
-    m_predicted = 10**log_m_predicted
-
-    log_right_lim = logmrv.ppf(norm.cdf(equivalent_sigma))
-    log_left_lim = logmrv.ppf(norm.cdf(-equivalent_sigma))
-
-    right_lim = 10**log_right_lim
-    left_lim = 10**log_left_lim
-
-    if return_log:
-        return log_m_predicted, log_left_lim, log_right_lim
-    else:
-        return m_predicted, left_lim, right_lim
-
-#Custom pdf class
-class sum_of_norm(rv_continuous):
-
-    "Distribution generated from a sum of gaussians"
-
-    def __init__(self, locs, scales, weights, ensemble_type='peers', threshold=0.25):
-        super().__init__()
-        self.locs = np.array(locs).reshape(-1, 1)
-        self.scales = np.array(scales).reshape(-1, 1)
-        self.weights = np.array(weights).reshape(-1)
-        self.threshold=threshold
-        self.set_ensemble_type(ensemble_type)
-        self.set_reliability()
-
-    def set_ensemble_type(self, type):
-        if type=='experts':
-            self.pweights = self.weights.reshape(-1)*(self.scales.reshape(-1)**-2)
-        else:
-        	if type=='peers':
-                 self.pweights = self.weights
-        self.set_reliability()
-        #self.pweights = self.pweights.reshape(-1,1)
-
-    def _pdf(self, x):
-        xx = np.array(x).reshape(1, -1)
-        return np.average(np.exp(-(xx-self.locs)**2 / (2.*(self.scales**2))) / (np.sqrt(2.0 * np.pi)*self.scales), weights=self.pweights, axis=0)
-
-    def _cdf(self, x):
-        t = (np.array(x).reshape(1,-1) - self.locs)/self.scales
-        return np.average(ndtr(t), weights=self.pweights, axis=0)
-
-    def mean(self):
-        return np.average(self.locs, weights=self.pweights, axis=0)
-
-    def var(self):
-        return np.average(self.scales**2+self.locs**2, weights=self.pweights, axis=0) -  self.mean()**2
-
-    def std(self):
-        return self.var()**0.5
-    
-    def set_reliability(self):
-        temp = self.summary_measure(return_log=True)
-        self.reliable = ((temp[2]-temp[1])/2)<self.threshold
-    
-    def summary_measure(self, equivalent_sigma=1, return_log=False):
-        return extract_prediction(self, equivalent_sigma=1, return_log=return_log)
 
 
 #random variable class for discrete marginalization
