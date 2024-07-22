@@ -89,3 +89,17 @@ def finetune(model, newdatax, newdatay, newdatax_test, newdatay_test, ftname, mo
     del test_inp
     del target_test
     gc.collect()
+    
+    
+def train_multip(params):
+    
+    #load data
+    data = {}
+    times=[500,1000,1500]
+    for t in times:
+        data[f'time{t}'] = np.load(f'{os.path.dirname(__file__)}/data/final/final{t}/data.npy', allow_pickle=True).item()
+    train_inp = np.concatenate([np.expand_dims(data[f'time{t}'][f'inp_train{fold_no}'], axis=3) for t in times], axis=0)
+    target_train = np.concatenate([data[f'time{t}'][f'targ_train{fold_no}'].reshape(-1) for t in times], axis=0)
+    test_inp = np.concatenate([np.expand_dims(data[f'time{t}'][f'inp_test{fold_no}'], axis=3) for t in times], axis=0)
+    target_test = np.concatenate([data[f'time{t}'][f'targ_test{fold_no}'].reshape(-1) for t in times],axis=0)
+    

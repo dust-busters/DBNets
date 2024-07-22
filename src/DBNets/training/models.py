@@ -36,6 +36,57 @@ class CustomLossWarmup(tf.keras.losses.Loss):
     loss = tf.reduce_mean(tf.math.square((o_mean-y_true)))
     return loss
 
+########################## model with multiple parameters #############################################
+def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=(0, 0, 0, 0.3, 0.3, 0.3), seed=0, noise=0):
+
+    #initializer
+    initializer = tf.keras.initializers.HeNormal(seed=seed)
+
+    #define inputs
+    inputs = Input(shape=input_shape)
+
+    # augmentation and standardization
+    x = RandomTranslation(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode='nearest')(inputs)
+    x = LayerNormalization(axis=[1,2])(x)
+    x = GaussianNoise(0.01)(x)
+
+    #first block
+    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
+    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
+
+    x = LayerNormalization(axis=[1,2])(x)
+
+    #second block
+    x = Conv2D(32, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
+    x = Conv2D(32, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b2_p')(x)
+
+    x = LayerNormalization(axis=[1,2])(x)
+
+    #third block
+    x = Conv2D(64, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
+    x = Conv2D(64, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
+    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b3_p')(x)
+ 
+    x = LayerNormalization(axis=[1,2])(x)
+    
+    #dense layers
+    x = Flatten(name='flatten')(x)
+    x = Dropout(dropout[3])(x)
+    x = Dense(256, activation=act, name='FC1', kernel_initializer=initializer)(x)
+    x = Dropout(dropout[4])(x)
+    x = Dense(256, activation=act, name='FC2', kernel_initializer=initializer)(x)
+    x = Dropout(dropout[4])(x)
+    x = Dense(128, activation=act, name='FC3', kernel_initializer=initializer)(x)
+
+
+    outLayer = Dense(6, activation='linear', name='o_mean')(x)
+    simplecnn = Model(inputs, outLayer)
+
+    return simplecnn
+  
+  
 ##########################model for ensemble###########################################################
 
 def venus(input_shape=(64,64,1), act='leaky_relu', dropout=(0, 0, 0, 0.3, 0.3, 0.3), seed=0, noise=0):
