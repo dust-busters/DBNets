@@ -21,9 +21,8 @@ classifiers = [
 dependencies = [
   "numpy",
   "pandas",
-  "tensorflow",
+  "tensorflow<=2.15",
   "scipy",
-  "tf_keras",
   "tf_keras_vis",
   "tqdm",
   "opencv-python",
