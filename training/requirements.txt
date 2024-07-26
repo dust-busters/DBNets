@@ -1,0 +1,7 @@
+tensorflow>2.15
+keras_cv
+wandb
+pandas
+numpy
+scipy
+
