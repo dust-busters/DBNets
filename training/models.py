@@ -1,21 +1,26 @@
 #imports
-from tensorflow.keras.layers import LayerNormalization
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Input
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.layers import RandomTranslation
-from tensorflow.keras.layers import RandomFlip
-from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.layers import GaussianNoise
-from tensorflow.keras.layers import Add
-from tensorflow.keras.layers import LeakyReLU
+import keras_cv
+from keras.layers import LayerNormalization
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Dropout
+from keras.layers import Dense
+from keras.layers import Flatten
+from keras.layers import Input
+from keras.models import Model
+from keras.layers import Concatenate
+from keras.layers import RandomTranslation
+from keras.layers import RandomFlip
+from keras.layers import Concatenate
+from keras.layers import GaussianNoise
+from keras.layers import Add
+from keras.layers import LeakyReLU
+from keras_cv.layers import RandomAugmentationPipeline
+from keras_cv.core import UniformFactorSampler
+from tensorflow.python.ops import array_ops
 import tensorflow as tf
 import numpy as np
+import keras
 import pickle
 
 class CustomLoss(tf.keras.losses.Loss):
@@ -37,54 +42,97 @@ class CustomLossWarmup(tf.keras.losses.Loss):
     return loss
 
 ########################## model with multiple parameters #############################################
-def venus(input_shape=(64,64,1), act='leaky_relu', dropout=(0, 0, 0, 0.3, 0.3, 0.3), seed=0, noise=0):
 
-    #initializer
-    initializer = tf.keras.initializers.HeNormal(seed=seed)
+def get_gaussian_beam(size, sigma):
+  print(sigma)
+  xy = tf.linspace(-size/2, size/2, size)
+  xx, yy = tf.meshgrid(xy, xy)
+  filter = 1/(2.0*np.pi*sigma**2.0) * tf.math.exp(-(xx**2 + yy**2)/(2.0 * sigma**2.0))
+  return filter
 
-    #define inputs
-    inputs = Input(shape=input_shape)
 
-    # augmentation and standardization
-    x = RandomTranslation(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode='nearest')(inputs)
-    x = LayerNormalization(axis=[1,2])(x)
-    x = GaussianNoise(0.01)(x)
-
-    #first block
-    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
-    x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
-    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
-
-    x = LayerNormalization(axis=[1,2])(x)
-
-    #second block
-    x = Conv2D(32, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
-    x = Conv2D(32, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
-    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b2_p')(x)
-
-    x = LayerNormalization(axis=[1,2])(x)
-
-    #third block
-    x = Conv2D(64, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
-    x = Conv2D(64, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
-    x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b3_p')(x)
- 
-    x = LayerNormalization(axis=[1,2])(x)
+class RandomBeam(keras_cv.layers.BaseImageAugmentationLayer):
+  
+  def __init__(self, factor, seed=0, **kwargs):
+    super().__init__(**kwargs)
+    print(factor)
+    self.factor = UniformFactorSampler(lower=0., upper=factor, seed=seed)
+    print(self.factor.get_config())
+    self.kernel_size = 10
     
-    #dense layers
-    x = Flatten(name='flatten')(x)
-    x = Dropout(dropout[3])(x)
-    x = Dense(256, activation=act, name='FC1', kernel_initializer=initializer)(x)
-    x = Dropout(dropout[4])(x)
-    x = Dense(256, activation=act, name='FC2', kernel_initializer=initializer)(x)
-    x = Dropout(dropout[4])(x)
-    x = Dense(128, activation=act, name='FC3', kernel_initializer=initializer)(x)
+    
+  def augment_image(self, image, *args, transformation=None, **kwargs):
+    kern = array_ops.expand_dims(array_ops.expand_dims(get_gaussian_beam(self.kernel_size, self.factor()), 2), 3)
+    image =   array_ops.expand_dims(image, 0)
+    ret = tf.nn.conv2d(image, kern, strides=(1,1), padding='VALID')
+    return ret[0]
+  
+  
+  def get_random_transformation(self, **kwargs):
+        # kwargs holds {"images": image, "labels": label, etc...}
+        return self.factor()
+    
+    
+    
+def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=0.2, seed=0, noise=0, maximum_res=0.2):
+
+  #define the augmentation pipeline
+  augm_layers = [
+                  RandomTranslation(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode='nearest'),
+                  GaussianNoise(noise),
+                  RandomBeam(maximum_res*input_shape[0]/8.)
+                 ]
+  
+  #initializer
+  initializer = keras.initializers.HeNormal(seed=seed)
+
+  #define inputs
+  inputs = Input(shape=input_shape)
+  
+  #x = RandomAugmentationPipeline(augm_layers, augmentations_per_image=3, rate=0.5)(inputs)
+  # augmentation and standardization
+  
+  x = LayerNormalization(axis=[1,2])(inputs)
+  
+  for l in augm_layers:
+    x = l(x)
+  
+
+  #first block
+  x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
+  x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
+  x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
+
+  x = LayerNormalization(axis=[1,2])(x)
+
+  #second block
+  x = Conv2D(32, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
+  x = Conv2D(32, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
+  x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b2_p')(x)
+
+  x = LayerNormalization(axis=[1,2])(x)
+
+  #third block
+  x = Conv2D(64, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
+  x = Conv2D(64, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
+  x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b3_p')(x)
+
+  x = LayerNormalization(axis=[1,2])(x)
+
+  #dense layers
+  x = Flatten(name='flatten')(x)
+  x = Dropout(dropout)(x)
+  x = Dense(256, activation=act, name='FC1', kernel_initializer=initializer)(x)
+  x = Dropout(dropout)(x)
+  x = Dense(256, activation=act, name='FC2', kernel_initializer=initializer)(x)
+  x = Dropout(dropout)(x)
+  x = Dense(128, activation=act, name='FC3', kernel_initializer=initializer)(x)
 
 
-    outLayer = Dense(6, activation='linear', name='o_mean')(x)
-    simplecnn = Model(inputs, outLayer)
+  outLayer = Dense(6, activation='linear', name='o_mean')(x)
+  simplecnn = Model(inputs, outLayer)
 
-    return simplecnn
+  return simplecnn
   
   
 ##########################model for ensemble###########################################################
