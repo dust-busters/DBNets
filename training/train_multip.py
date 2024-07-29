@@ -109,14 +109,13 @@ def train(params, fold):
         #log to wandb
         
         #save models
-        saving_dir = f"{params['saving_folder']}/{params['name']}.{fold_no}"
-        os.mkdir(saving_dir)
+        saving_file = f"{params['saving_folder']}/{params['name']}.{fold_no}.keras"
     
-        model.save(saving_dir)
+        model.save(saving_file)
         del model
 
         #save history
-        with open(f"{saving_dir}/history.hist", 'wb') as file_h:
+        with open(f"{params['saving_folder']}/histories/history.{fold_no}.hist", 'wb') as file_h:
             pickle.dump(history.history, file_h)
         
         #save score
@@ -144,6 +143,7 @@ if __name__ == '__main__':
                 exit()
         else:
             os.mkdir(params['saving_folder'])
+            os.mkdir(f"{params['saving_folder']}/histories")
         
         #loading data
         data = {}
