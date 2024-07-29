@@ -42,6 +42,16 @@ class CustomLossWarmup(tf.keras.losses.Loss):
     loss = tf.reduce_mean(tf.math.square((o_mean-y_true)))
     return loss
 
+def inner_part_custom_metric(y_true, y_pred, i):
+    d = y_pred-y_true
+    square_d = K.square(d)
+    return square_d[:,i] #y has shape [batch_size, output_dim]
+
+def custom_metric_output_i(i):
+    def custom_metric_i(y_true, y_pred):
+        return inner_part_custom_metric(y_true, y_pred, i)
+    return custom_metric_i
+  
 ########################## model with multiple parameters #############################################
 
 def get_gaussian_beam(size, sigma):

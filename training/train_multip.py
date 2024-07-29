@@ -15,6 +15,7 @@ import pandas as pd
 import sys
 import keras_cv
 import os
+from wandb.integration.keras import WandbCallback
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
@@ -78,9 +79,21 @@ def train(params, fold):
             cb = [es2]
         else:
             cb=[]
+        
+        #preparing metrics
+        metrics = [models.custom_metric_output_i(i) for i in range(6)]
+        
+        #wandb callback
+        wandb_callback = WandbCallback(monitor='val_loss',
+                               log_weights=True,
+                               log_evaluation=True,
+                               validation_steps=5)
+        cb = cb + wandb_callback
+
             
         #compiling model
-        model.compile(loss = 'mse', optimizer=optimizer)
+        model.compile(loss = 'mse', optimizer=optimizer, metrics=metrics)
+        
         
         #fitting
         history = model.fit(x=train_inp,
@@ -91,8 +104,10 @@ def train(params, fold):
                             callbacks=cb)
     
         #scores
-        scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
-        scores_train = model.evaluate(train_inp, target_train, verbose=0, return_dict=True)
+        #scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
+        #scores_train = model.evaluate(train_inp, target_train, verbose=0, return_dict=True)
+        train_res = model(train_inp)
+        
         
         #log to wandb
         
