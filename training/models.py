@@ -15,6 +15,7 @@ from keras.layers import Concatenate
 from keras.layers import GaussianNoise
 from keras.layers import Add
 from keras.layers import LeakyReLU
+from keras.src import ops
 from keras_cv.layers import RandomAugmentationPipeline
 from keras_cv.core import UniformFactorSampler
 from tensorflow.python.ops import array_ops
@@ -65,7 +66,7 @@ class RandomBeam(keras_cv.layers.BaseImageAugmentationLayer):
   def augment_image(self, image, *args, transformation=None, **kwargs):
     kern = array_ops.expand_dims(array_ops.expand_dims(get_gaussian_beam(self.kernel_size, self.factor()), 2), 3)
     image =   array_ops.expand_dims(image, 0)
-    ret = self.conv_layer(image, kern)
+    ret = ops.conv(image, kern, strides=(1,1), padding='VALID')
     return ret[0]
   
   
