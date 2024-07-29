@@ -101,9 +101,9 @@ def train(params, fold):
                             callbacks=cb)
     
         #scores
-        #scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
-        #scores_train = model.evaluate(train_inp, target_train, verbose=0, return_dict=True)
-        train_res = model(train_inp)
+        scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
+        scores_train = model.evaluate(train_inp, target_train, verbose=0, return_dict=True)
+        
         
         
         #log to wandb
