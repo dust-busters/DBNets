@@ -77,7 +77,7 @@ class RandomBeam(keras_cv.layers.BaseImageAugmentationLayer):
 class RandomBeamBase(keras.layers.Layer):
   
   def call(self, x, kern):
-    tf.nn.conv2d(x, kern, strides=(1,1), padding='VALID')
+    return tf.nn.conv2d(x, kern, strides=(1,1), padding='VALID')
     
     
 def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=0.2, seed=0, noise=0, maximum_res=0.2):
