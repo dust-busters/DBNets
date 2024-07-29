@@ -59,19 +59,25 @@ class RandomBeam(keras_cv.layers.BaseImageAugmentationLayer):
     self.factor = UniformFactorSampler(lower=0., upper=factor, seed=seed)
     print(self.factor.get_config())
     self.kernel_size = 10
+    self.conv_layer = RandomBeamBase()
     
     
   def augment_image(self, image, *args, transformation=None, **kwargs):
     kern = array_ops.expand_dims(array_ops.expand_dims(get_gaussian_beam(self.kernel_size, self.factor()), 2), 3)
     image =   array_ops.expand_dims(image, 0)
-    ret = tf.nn.conv2d(image, kern, strides=(1,1), padding='VALID')
+    ret = self.conv_layer(image, kern)
     return ret[0]
   
   
   def get_random_transformation(self, **kwargs):
         # kwargs holds {"images": image, "labels": label, etc...}
         return self.factor()
-    
+      
+
+class RandomBeamBase(keras.layers.Layer):
+  
+  def call(self, x, kern):
+    tf.nn.conv2d(x, kern, strides=(1,1), padding='VALID')
     
     
 def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=0.2, seed=0, noise=0, maximum_res=0.2):
