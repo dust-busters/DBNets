@@ -15,7 +15,7 @@ import pandas as pd
 import sys
 import keras_cv
 import os
-from wandb.integration.keras import WandbCallback
+from wandb.integration.keras import WandbMetricsLogger
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
@@ -84,10 +84,7 @@ def train(params, fold):
         metrics = [models.custom_metric_output_i(i) for i in range(6)]
         
         #wandb callback
-        wandb_callback = WandbCallback(monitor='val_loss',
-                               log_weights=True,
-                               log_evaluation=True,
-                               validation_steps=5)
+        wandb_callback = WandbMetricsLogger(log_freq="epoch")
         cb = cb + [wandb_callback]
 
             
