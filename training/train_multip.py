@@ -88,7 +88,7 @@ def train(params, fold):
                                log_weights=True,
                                log_evaluation=True,
                                validation_steps=5)
-        cb = cb + wandb_callback
+        cb = cb + [wandb_callback]
 
             
         #compiling model
