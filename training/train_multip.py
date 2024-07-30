@@ -14,37 +14,13 @@ import wandb
 import pandas as pd
 import sys
 import keras_cv
+from config import configs
 import os
 from wandb.integration.keras import WandbMetricsLogger
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
 project_name = 'dbnets2.0.0'
-
-n_i = int(sys.argv[1])
-n_f = int(sys.argv[2])
-
-configs = [
-          {
-'name': f'test{i}',
-'img_pixel_size': (128,128),
-'optimizer': keras.optimizers.Adam(learning_rate=0.0001),
-'activation': 'leaky_relu',
-'smoothing': True,
-'model_name': 'venus_multip',
-'dropout': 0.1,
-'noise': 0.1,
-'maximum_augm_resolution': 0.2, #in units of a
-'early_stopping': True,
-'patience': 20,
-'batch_size':16,
-'seed': 47656344%(i+1),
-'data_path': 'training_data/only_subs_nosmooth/',
-'times': [500,1000,1500],
-'saving_folder': 'trained/final_allt',
-'override': True,
-'resume': False
-} for i in range(n_i,n_f)]
 
 
 print(tf.__version__)
@@ -71,7 +47,7 @@ def train(params, fold):
         print(target_test.shape)
         print(train_inp.shape)
         print(test_inp.shape)
-        optimizer = params['optimizer']
+        optimizer = keras.optimizers.Adam(learning_rate=params['lr'])
 
         #preparing callback for early stopping 2
         es2 = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=params['patience'], restore_best_weights=True)
