@@ -117,22 +117,28 @@ def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=0.2, seed=0, n
   
 
   #first block
-  x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
-  x = Conv2D(16, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
+  x = Conv2D(32, (3,3), activation=act, padding='same', name='b1_c1', kernel_initializer=initializer)(x)
+  fx = Conv2D(32, (3,3), activation=act, padding='same', name='b1_c2', kernel_initializer=initializer)(x)
+  fx = Conv2D(32, (3,3), activation=act, padding='same', name='b1_c3', kernel_initializer=initializer)(fx)
+  x = Add()([x, fx])
   x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b1_p')(x)
 
   x = LayerNormalization(axis=[1,2])(x)
 
   #second block
-  x = Conv2D(32, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
-  x = Conv2D(32, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
+  x = Conv2D(64, (3,3), activation=act, padding='same', name='b2_c1', kernel_initializer=initializer )(x)
+  fx = Conv2D(64, (3,3), padding='same', activation=act, name='b2_c2', kernel_initializer=initializer)(x)
+  fx = Conv2D(64, (3,3), padding='same', activation=act, name='b2_c3', kernel_initializer=initializer)(fx)
+  x = Add()([x, fx])
   x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b2_p')(x)
 
   x = LayerNormalization(axis=[1,2])(x)
 
   #third block
-  x = Conv2D(64, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
-  x = Conv2D(64, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
+  x = Conv2D(128, (3,3), activation=act, padding='same', name='b3_c1', kernel_initializer=initializer)(x)
+  fx = Conv2D(128, (3,3), padding='same', activation=act, name='b3_c2', kernel_initializer=initializer)(x)
+  fx = Conv2D(128, (3,3), padding='same', activation=act, name='b3_c3', kernel_initializer=initializer)(fx)
+  x = Add()([x, fx])
   x = MaxPooling2D(pool_size=(2,2), strides=(2,2), name='b3_p')(x)
 
   x = LayerNormalization(axis=[1,2])(x)
@@ -144,7 +150,9 @@ def venus_multip(input_shape=(64,64,1), act='leaky_relu', dropout=0.2, seed=0, n
   x = Dropout(dropout)(x)
   x = Dense(256, activation=act, name='FC2', kernel_initializer=initializer)(x)
   x = Dropout(dropout)(x)
-  x = Dense(128, activation=act, name='FC3', kernel_initializer=initializer)(x)
+  x = Dense(256, activation=act, name='FC3', kernel_initializer=initializer)(x)
+  x = Dropout(dropout)(x)
+  x = Dense(128, activation=act, name='FC4', kernel_initializer=initializer)(x)
 
 
   outLayer = Dense(6, activation='linear', name='o_mean')(x)
