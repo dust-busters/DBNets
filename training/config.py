@@ -13,7 +13,7 @@ configs = [
 'early_stopping': True,
 'patience': 20,
 'batch_size':16,
-'seed': 47656344%(i+1),
+'seed': 47656344%(58+1),
 'data_path': 'training_data/only_subs_nosmooth/',
 'times': [500,1000,1500],
 'saving_folder': 'trained/final_allt',
