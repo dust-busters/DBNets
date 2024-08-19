@@ -232,6 +232,9 @@ def train(params, fold):
 if __name__ == "__main__":
 
     for params in configs:
+        # updating saving folder with name
+        params['saving_folder'] = f"{params['saving_folder']}/{params['name']}"
+        
         # checking if exists and creating output directory if it does not
         if os.path.exists(params["saving_folder"]):
             if params["override"]:
