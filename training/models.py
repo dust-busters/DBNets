@@ -231,7 +231,7 @@ class MultiPModel(keras.Model):
             sigma = tf.ones(shape=(tf.shape(x)[0], 1)) * res
             smoothed_x = self.get_smoothing_layer().smooth(x, sigma)
             # Compute predictions
-            y_pred = self(smoothed_x, res=sigma, training=False)
+            y_pred = self(smoothed_x, res=sigma, training=True)
             # Updates the metrics tracking the loss
             loss = self.compute_loss(y=y, y_pred=y_pred)
             # Update the metrics.
