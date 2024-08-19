@@ -186,7 +186,7 @@ def train(params, fold):
             epochs=500,
             verbose=1,
             shuffle=True,
-            validation_data=(test_inp, target_test),
+            validation_data=(train_inp, target_train),
             callbacks=cb,
         )
 
