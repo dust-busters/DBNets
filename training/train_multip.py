@@ -110,7 +110,13 @@ def train(params, fold):
         )
         target_train = np.concatenate(
             [
-                data[f"time{t}"][f"targ_train{fold}"].reshape(-1, 6)
+                # this is necessary because labels have been wrongly packed
+                np.concatenate(
+                    [
+                        data[f"time{t}"][f"targ_train{fold}"].reshape(-1, 6)[i::3]
+                        for i in range(3)
+                    ]
+                )
                 for t in params["times"]
             ],
             axis=0,
@@ -186,7 +192,7 @@ def train(params, fold):
             epochs=500,
             verbose=1,
             shuffle=True,
-            validation_data=(train_inp, target_train),
+            validation_data=(test_inp, target_test),
             callbacks=cb,
         )
 
