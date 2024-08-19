@@ -185,7 +185,7 @@ class MultiPModel(keras.Model):
         self.flatten = Flatten()
         self.dense_res = Dense(256, activation=act, input_shape=(1,))
         self.dense = [Dense(n, activation=act) for n in [256, 256, 256, 128]]
-        self.out = Dense(6, activation="linear", name="o_mean")
+        self.out = Dense(6, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
         self.training = training
         self.testing_resolutions = testing_resolutions
