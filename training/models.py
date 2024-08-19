@@ -11,6 +11,7 @@ from keras.layers import Input
 from keras.models import Model
 from keras.layers import Concatenate
 from keras.layers import RandomTranslation
+from keras.layers import RandomRotation
 from keras.layers import RandomFlip
 from keras.layers import Concatenate
 from keras.layers import GaussianNoise
@@ -168,6 +169,7 @@ class MultiPModel(keras.Model):
     ):
         super().__init__()
         self.augm_layers = [
+            RandomRotation(0.5, fill_mode='nearest'),
             RandomTranslation(
                 height_factor=(-maximum_translation_factor, maximum_translation_factor),
                 width_factor=(-maximum_translation_factor, maximum_translation_factor),
@@ -176,7 +178,7 @@ class MultiPModel(keras.Model):
             GaussianNoise(noise),
             RandomBeamBase(maximum_res),
         ]
-        self.SMOOTHING_LAYER = 2
+        self.SMOOTHING_LAYER = 3
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
         self.res_blocks = [ResBlock(n, initializer=None) for n in [32, 64, 128]]
         self.drop = Dropout(dropout)
@@ -194,7 +196,7 @@ class MultiPModel(keras.Model):
             training = self.training
 
         for i, l in enumerate(self.augm_layers):
-            if i == 2:
+            if i == self.SMOOTHING_LAYER:
                 x, sigma = l(x, training=training)
             else:
                 x = l(x, training=training)
@@ -227,7 +229,7 @@ class MultiPModel(keras.Model):
         for res in self.testing_resolutions:
             # generate convolved testing images
             sigma = tf.ones(shape=(tf.shape(x)[0], 1)) * res
-            smoothed_x = self.augm_layers[2].smooth(x, sigma)
+            smoothed_x = self.get_smoothing_layer().smooth(x, sigma)
             # Compute predictions
             y_pred = self(smoothed_x, res=sigma, training=False)
             # Updates the metrics tracking the loss
@@ -264,6 +266,7 @@ def venus_multip(
 
     # define the augmentation pipeline
     augm_layers = [
+        
         RandomTranslation(
             height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode="nearest"
         ),
