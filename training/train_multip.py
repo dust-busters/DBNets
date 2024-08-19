@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from matplotlib import testing
 import numpy as np
 import gc
 import keras
