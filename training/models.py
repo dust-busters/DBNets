@@ -121,13 +121,15 @@ class ResBlock(keras.Model):
         self.depth = depth
 
         for i in range(1, self.depth):
-            self.conv_layers += [Conv2D(
-                kernel_n,
-                (3, 3),
-                padding="same",
-                name=f"conv_layer_{i}",
-                kernel_initializer=initializer,
-            )]
+            self.conv_layers += [
+                Conv2D(
+                    kernel_n,
+                    (3, 3),
+                    padding="same",
+                    name=f"conv_layer_{i}",
+                    kernel_initializer=initializer,
+                )
+            ]
             self.activations += [LeakyReLU()]
 
         self.add = Add()
@@ -159,15 +161,17 @@ class MultiPModel(keras.Model):
         dropout=0.2,
         seed=0,
         noise=0,
+        maximum_translation_factor=0.1,
         maximum_res=0.2,
-        n_res_blocks=1,
         training=False,
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
     ):
         super().__init__()
         self.augm_layers = [
             RandomTranslation(
-                height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode="nearest"
+                height_factor=(-maximum_translation_factor, maximum_translation_factor),
+                width_factor=(-maximum_translation_factor, maximum_translation_factor),
+                fill_mode="nearest",
             ),
             GaussianNoise(noise),
             RandomBeamBase(maximum_res),
@@ -196,7 +200,7 @@ class MultiPModel(keras.Model):
                 x = l(x, training=training)
 
         x = self.norm(x)
-        
+
         if training:
             res = sigma
 
@@ -243,7 +247,6 @@ class MultiPModel(keras.Model):
             for m in self.metrics:
                 m.reset_state()
         return results
-    
 
     def get_smoothing_layer(self):
         return self.augm_layers[self.SMOOTHING_LAYER]

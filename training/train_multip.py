@@ -137,9 +137,9 @@ def train(params, fold):
             act=params["activation"],
             dropout=params["dropout"],
             seed=params["seed"],
+            maximum_translation_factor=params["maximum_translation_factor"],
             noise=params["noise"],
             maximum_res=params["maximum_augm_resolution"],
-            n_res_blocks=params["n_res_blocks"],
             training=True,
         )
 
@@ -233,8 +233,8 @@ if __name__ == "__main__":
 
     for params in configs:
         # updating saving folder with name
-        params['saving_folder'] = f"{params['saving_folder']}/{params['name']}"
-        
+        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
+
         # checking if exists and creating output directory if it does not
         if os.path.exists(params["saving_folder"]):
             if params["override"]:

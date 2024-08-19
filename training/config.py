@@ -10,6 +10,7 @@ configs = [
 'smoothing': True,
 'model_name': 'venus_multip',
 'dropout': 0.1,
+'maximum_translation_factor': 0.01,
 'noise': 0.1,
 'maximum_augm_resolution': 0.2, #in units of a
 'early_stopping': True,
