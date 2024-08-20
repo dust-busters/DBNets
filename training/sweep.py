@@ -7,7 +7,7 @@ sweep_config = {
     "metric": {"name": "val_loss", "goal": "minimize"},
     "parameters": {
         "name": {'value' : f"test_sweep"},
-        "img_pixel_size": (128, 128),
+        "img_pixel_size": {'value': (128, 128)},
         "lr": {"distribution": "uniform", "min": 5e-5, "max": 5e-3},
         "activation": {"values": ["leaky_relu", "relu", "elu"]},
         "smoothing": {'value':True},
