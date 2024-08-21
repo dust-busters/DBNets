@@ -1,6 +1,7 @@
 import wandb
 import os
 import argparse
+import time
 
 global_params = {
     "name": "test_sweep",
@@ -47,5 +48,9 @@ if __name__ == "__main__":
 
     sweep_id = wandb.sweep(sweep_config, project="dbnets2.0")
 
+    #sleeping for 30 seconds to get the server running
+    time.sleep(30)
+    
+    #launching agents
     for i in range(args.n_sweep_agents):
         os.system(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
