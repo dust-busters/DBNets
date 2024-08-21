@@ -239,7 +239,7 @@ def train_core(params, fold):
 
 def train(params):
     
-    params = wandb.config
+    #params = wandb.config
     # updating saving folder with name
     if params['sweep']:
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}/{time.time()}"
