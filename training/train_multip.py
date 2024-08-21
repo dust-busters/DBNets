@@ -303,8 +303,8 @@ def train(params=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="Trainer for dbnets2.0",
-        description="Trains the CNN for dbnets2.0",
+        prog="Trainer for dbnets2.0.0",
+        description="Trains the CNN for dbnets2.0.",
     )
 
     parser.add_argument("-s", "--sweep", type=str, required=False, default=None)
@@ -315,7 +315,7 @@ if __name__ == "__main__":
     if args.sweep is not None:
         print(f"Launching sweep agents performing {args.n_sweep_agents} iterations...")
         print(f"Sweep id: {args.sweep}")
-        wandb.agent(args.sweep, train, count=args.n_sweep_agents, project="dbnets2.0")
+        wandb.agent(args.sweep, train, count=args.n_sweep_agents, project=project_name)
     else:
         print("Starting training using parameters in configs.py...")
         for params in configs:

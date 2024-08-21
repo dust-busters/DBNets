@@ -46,15 +46,13 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--count", required=False, default=1, type=int)
     args = parser.parse_args()
 
-    sweep_id = wandb.sweep(sweep_config, project="dbnets2.0")
+    sweep_id = wandb.sweep(sweep_config, project="dbnets2.0.0")
 
     # sleeping for 30 seconds to get the server running
-    time.sleep(30)
+    #time.sleep(30)
 
-    print(
-        "Please manually launch the agents with the following commands. \
-            Doing it from python is currently not working due to mysterious forces."
-    )
+    print("Please manually launch the agents with the following commands.")
+    print("Doing it from python is currently not working due to mysterious forces.")
     print(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
 
     # launching agents
