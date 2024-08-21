@@ -53,4 +53,5 @@ if __name__ == "__main__":
     
     #launching agents
     for i in range(args.n_sweep_agents):
+        print(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
         os.system(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
