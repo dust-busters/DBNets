@@ -238,7 +238,7 @@ def train_core(params, fold):
         gc.collect()
 
 def train(params):
-    
+    print(params)
     #params = wandb.config
     # updating saving folder with name
     if params['sweep']:
@@ -365,6 +365,7 @@ if __name__ == "__main__":
     
     if args.sweep is not None:
         print(f'Launching sweep agents performing {args.n_sweep_agents} iterations...')
+        print(f'Sweep id: {args.sweep}')
         wandb.agent(args.sweep, train, count=args.n_sweep_agents)
     else:
         print('Starting training using parameters in configs.py...')
