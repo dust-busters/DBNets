@@ -93,7 +93,7 @@ class WandbClfEvalCallback(WandbEvalCallback):
 
 
 # function that trains one fold
-def train_core(params, fold):
+def train_core(params, data, fold):
 
     with wandb.init(project=project_name, config=params, name=params["name"]):
 
@@ -298,7 +298,7 @@ def train(params=None):
     else:
         for fold_no in [1, 2, 3, 4, 5]:
             params["fold"] = fold_no
-            train(params, fold_no)
+            train_core(params, data, fold_no)
 
 
 if __name__ == "__main__":
