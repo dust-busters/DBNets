@@ -97,8 +97,11 @@ def train_core(params, fold):
 
     with wandb.init(project=project_name, config=params, name=params["name"]):
 
-        params = wandb.config
-        
+        # if running a sweep concatenate these parameters with those drawn by the agent
+        if params["sweep"]:
+            wandb.config.update(params)
+            params = wandb.config
+
         # saving start time
         start_time = time.time()
 
@@ -237,12 +240,17 @@ def train_core(params, fold):
         del test_inp
         gc.collect()
 
-def train(params):
-    print(params)
-    #params = wandb.config
-    # updating saving folder with name
-    if params['sweep']:
-        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}/{time.time()}"
+
+def train(params=None):
+
+    if params is None:
+        # it means we are running a sweep
+        from sweep import global_params as params
+
+        params["sweep"] = True
+        params["saving_folder"] = (
+            f"{params['saving_folder']}/{params['name']}/{time.time()}"
+        )
     else:
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
 
@@ -270,9 +278,7 @@ def train(params):
     if os.path.exists("parahist.csv"):
         oldpara = pd.read_csv("parahist.csv", index_col=0)
         params["index"] = oldpara.index[-1] + 1
-        newparafile = pd.concat(
-            [oldpara, pd.DataFrame([params]).set_index("index")]
-        )
+        newparafile = pd.concat([oldpara, pd.DataFrame([params]).set_index("index")])
     else:
         params["index"] = 0
         newparafile = pd.DataFrame([params]).set_index("index")
@@ -293,82 +299,24 @@ def train(params):
         for fold_no in [1, 2, 3, 4, 5]:
             params["fold"] = fold_no
             train(params, fold_no)
-            
-            
-def train_for_sweep(params):
-    # updating saving folder with name
-    if params['sweep']:
-        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}/{time.time()}"
-    else:
-        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
-
-    # checking if exists and creating output directory if it does not
-    if os.path.exists(params["saving_folder"]):
-        if params["override"]:
-            print("Saving directory exists, overriding old data as instructed.")
-        else:
-            print(
-                "WARNING! -> saving directory already exists, please run with Override=True"
-            )
-            exit()
-    else:
-        os.mkdir(params["saving_folder"])
-        os.mkdir(f"{params['saving_folder']}/histories")
-
-    # loading data
-    data = {}
-    for t in params["times"]:
-        data[f"time{t}"] = np.load(
-            f'{params["data_path"]}/{t}/data.npy', allow_pickle=True
-        ).item()
-
-    # checking file with parameter history and adding this run
-    if os.path.exists("parahist.csv"):
-        oldpara = pd.read_csv("parahist.csv", index_col=0)
-        params["index"] = oldpara.index[-1] + 1
-        newparafile = pd.concat(
-            [oldpara, pd.DataFrame([params]).set_index("index")]
-        )
-    else:
-        params["index"] = 0
-        newparafile = pd.DataFrame([params]).set_index("index")
-    newparafile.to_csv("parahist.csv")
-
-    # begin train
-    if params["resume"]:
-        if not os.path.exists(params["resume_from"]):
-            print(
-                "Error! the model wich you want to resume from does not exist!\n Exiting..."
-            )
-            exit()
-        else:
-            # TODO: implement possibility to resume
-            print("Error! Resuming not yet implemented")
-            exit()
-    else:
-        for fold_no in [1, 2, 3, 4, 5]:
-            params["fold"] = fold_no
-            train(params, fold_no)
-
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-                    prog='Trainer for dbnets2.0',
-                    description='Trains the CNN for dbnets2.0',
-                )
-    
-    parser.add_argument('-s', '--sweep', type=str, required=False, default=None)
-    parser.add_argument('-ns', '--n-sweep-agents', required=False, default=1, type=int)
-    
+        prog="Trainer for dbnets2.0",
+        description="Trains the CNN for dbnets2.0",
+    )
+
+    parser.add_argument("-s", "--sweep", type=str, required=False, default=None)
+    parser.add_argument("-ns", "--n-sweep-agents", required=False, default=1, type=int)
+
     args = parser.parse_args()
-    
+
     if args.sweep is not None:
-        print(f'Launching sweep agents performing {args.n_sweep_agents} iterations...')
-        print(f'Sweep id: {args.sweep}')
-        wandb.agent(args.sweep, train, count=args.n_sweep_agents,  project="dbnets2.0")
+        print(f"Launching sweep agents performing {args.n_sweep_agents} iterations...")
+        print(f"Sweep id: {args.sweep}")
+        wandb.agent(args.sweep, train, count=args.n_sweep_agents, project="dbnets2.0")
     else:
-        print('Starting training using parameters in configs.py...')
+        print("Starting training using parameters in configs.py...")
         for params in configs:
             train(params)
-        
