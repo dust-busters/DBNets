@@ -97,6 +97,8 @@ def train_core(params, fold):
 
     with wandb.init(project=project_name, config=params, name=params["name"]):
 
+        params = wandb.config
+        
         # saving start time
         start_time = time.time()
 
@@ -236,6 +238,64 @@ def train_core(params, fold):
         gc.collect()
 
 def train(params):
+    
+    params = wandb.config
+    # updating saving folder with name
+    if params['sweep']:
+        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}/{time.time()}"
+    else:
+        params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
+
+    # checking if exists and creating output directory if it does not
+    if os.path.exists(params["saving_folder"]):
+        if params["override"]:
+            print("Saving directory exists, overriding old data as instructed.")
+        else:
+            print(
+                "WARNING! -> saving directory already exists, please run with Override=True"
+            )
+            exit()
+    else:
+        os.mkdir(params["saving_folder"])
+        os.mkdir(f"{params['saving_folder']}/histories")
+
+    # loading data
+    data = {}
+    for t in params["times"]:
+        data[f"time{t}"] = np.load(
+            f'{params["data_path"]}/{t}/data.npy', allow_pickle=True
+        ).item()
+
+    # checking file with parameter history and adding this run
+    if os.path.exists("parahist.csv"):
+        oldpara = pd.read_csv("parahist.csv", index_col=0)
+        params["index"] = oldpara.index[-1] + 1
+        newparafile = pd.concat(
+            [oldpara, pd.DataFrame([params]).set_index("index")]
+        )
+    else:
+        params["index"] = 0
+        newparafile = pd.DataFrame([params]).set_index("index")
+    newparafile.to_csv("parahist.csv")
+
+    # begin train
+    if params["resume"]:
+        if not os.path.exists(params["resume_from"]):
+            print(
+                "Error! the model wich you want to resume from does not exist!\n Exiting..."
+            )
+            exit()
+        else:
+            # TODO: implement possibility to resume
+            print("Error! Resuming not yet implemented")
+            exit()
+    else:
+        for fold_no in [1, 2, 3, 4, 5]:
+            params["fold"] = fold_no
+            train(params, fold_no)
+            
+            
+def train_for_sweep(params):
     # updating saving folder with name
     if params['sweep']:
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}/{time.time()}"
@@ -305,7 +365,7 @@ if __name__ == "__main__":
     
     if args.sweep is not None:
         print(f'Launching sweep agents performing {args.n_sweep_agents} iterations...')
-        wandb.agent(sweep_id=args.sweep, train, count=args.n_sweep_agents)
+        wandb.agent(args.sweep, train, count=args.n_sweep_agents)
     else:
         print('Starting training using parameters in configs.py...')
         for params in configs:
