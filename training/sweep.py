@@ -48,10 +48,18 @@ if __name__ == "__main__":
 
     sweep_id = wandb.sweep(sweep_config, project="dbnets2.0")
 
-    #sleeping for 30 seconds to get the server running
+    # sleeping for 30 seconds to get the server running
     time.sleep(30)
-    
-    #launching agents
-    for i in range(args.n_sweep_agents):
-        print(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
-        os.system(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
+
+    print(
+        "Please manually launch the agents with the following commands. \
+            Doing it from python is currently not working due to mysterious forces."
+    )
+    print(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
+
+    # launching agents
+    # for i in range(args.n_sweep_agents):
+
+    # for some reason if I launch the slurm jobs from python with the following line, wandb cannot find the sweep
+    # Hence, manually launch it with the printe command.
+    # os.system(f"sbatch runa100_sweep.sh {sweep_id} {args.count}")
