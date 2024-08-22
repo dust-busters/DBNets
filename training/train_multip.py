@@ -80,9 +80,9 @@ class WandbClfEvalCallback(WandbEvalCallback):
 
         table_idxs = self.data_table_ref.get_index()
         for idx in table_idxs:
-            results = [
-                v for v in all_preds[f"{res}"][idx] for res in self.testing_resolutions
-            ]
+            results = np.concatenate([
+                all_preds[f"{res}"][idx] for res in self.testing_resolutions
+            ])
             self.pred_table.add_data(epoch, self.data_table_ref.data[idx][0], *results)
 
     def _inference(self, res):

@@ -52,8 +52,8 @@ class CustomLossWarmup(tf.keras.losses.Loss):
 
 def inner_part_separate_mse(y_true, y_pred, i):
     d = y_pred - y_true
-    square_d = K.square(d)
-    return square_d[:, i]  # y has shape [batch_size, output_dim]
+    square_d = K.square(d[:, i])
+    return K.mean(square_d)  # y has shape [batch_size, output_dim]
 
 
 def separate_mse(i):
@@ -82,6 +82,7 @@ def get_gaussian_beam(size, sigma, epsilon=1e-5):
     return tf.cast(filter, tf.float32)
 
 
+@keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class RandomBeamBase(keras.layers.Layer):
 
     def __init__(self, maximum_res, kernel_size=65):
@@ -102,17 +103,39 @@ class RandomBeamBase(keras.layers.Layer):
             return x, K.convert_to_tensor([[0]])
 
     def smooth(self, x, sigma):
-        beams = get_gaussian_beam(self.kernel_size, sigma * 128.0 / 8.0)
+        beams = self.get_gaussian_beam(self.kernel_size, sigma * 128.0 / 8.0)
         tsigma = tf.cast(tf.expand_dims(tf.transpose(beams), -1), tf.float32)
         tbatch = tf.transpose(x)
         res = tf.nn.depthwise_conv2d(tbatch, tsigma, [1, 1, 1, 1], "SAME")
         tres = tf.transpose(res)
         return tres
 
+    def get_gaussian_beam(self, size, sigma, epsilon=1e-5):
+        sigma = sigma + epsilon
+        xy = tf.linspace(-size / 2, size / 2, size)
+        xx, yy = tf.meshgrid(xy, xy)
+        xx = tf.expand_dims(xx, 0)
+        yy = tf.expand_dims(yy, 0)
+        sigma = tf.expand_dims(sigma, 2)
+        filter = (
+            1
+            / (2.0 * np.pi * sigma**2.0)
+            * tf.math.exp(-(xx**2 + yy**2) / (2.0 * sigma**2.0))
+        )
+        return tf.cast(filter, tf.float32)
 
+    def get_config(self):
+        base_config = super().get_config()
+        config = {"maximum_res": self.maximum_res, "kernel_size": self.kernel_size}
+        return {**base_config, **config}
+
+
+@keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class ResBlock(keras.Model):
     def __init__(self, kernel_n, depth=3, initializer=None):
-        super(ResBlock, self).__init__()
+        super().__init__()
+        self.kernel_n = kernel_n
+        self.initializer = initializer
         self.conv1 = Conv2D(
             kernel_n, (3, 3), padding="same", kernel_initializer=initializer
         )
@@ -153,23 +176,46 @@ class ResBlock(keras.Model):
         x = self.maxpool(x)
         return x
 
+    def get_config(self):
+        base_config = super().get_config()
+        config = {
+            "kernel_n": self.kernel_n,
+            "depth": self.depth,
+            "initializer": self.initializer,
+        }
+        return {**base_config, **config}
 
+
+@keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class MultiPModel(keras.Model):
+
+    def get_config(self):
+        base_config = super().get_config()
+        config = {
+            "act": self.act,
+            "dropout": self.dropout_rate,
+            "noise": self.noise,
+            "maximum_translation_factor": self.maximum_translation_factor,
+            "maximum_res": self.maximum_res,
+            "training": self.training,
+            "testing_resolutions": self.testing_resolutions,
+        }
+        return {**base_config, **config}
 
     def __init__(
         self,
         act="leaky_relu",
         dropout=0.2,
-        seed=0,
         noise=0,
         maximum_translation_factor=0.1,
         maximum_res=0.2,
         training=False,
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
+        **args,
     ):
         super().__init__()
         self.augm_layers = [
-            RandomRotation(0.5, fill_mode='nearest'),
+            RandomRotation(0.5, fill_mode="nearest"),
             RandomTranslation(
                 height_factor=(-maximum_translation_factor, maximum_translation_factor),
                 width_factor=(-maximum_translation_factor, maximum_translation_factor),
@@ -178,17 +224,23 @@ class MultiPModel(keras.Model):
             GaussianNoise(noise),
             RandomBeamBase(maximum_res),
         ]
+        self.act = act
+        self.noise = noise
+        self.maximum_translation_factor = maximum_translation_factor
+        self.maximum_res = maximum_res
+        self.training = training
+        self.testing_resolutions = testing_resolutions
         self.SMOOTHING_LAYER = 3
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
         self.res_blocks = [ResBlock(n, initializer=None) for n in [32, 64, 128]]
+        self.dropout_rate = dropout
         self.drop = Dropout(dropout)
         self.flatten = Flatten()
         self.dense_res = Dense(256, activation=act, input_shape=(1,))
         self.dense = [Dense(n, activation=act) for n in [256, 256, 256, 128]]
         self.out = Dense(6, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
-        self.training = training
-        self.testing_resolutions = testing_resolutions
+        
 
     def call(self, x, res=None, training=None):
 
@@ -266,7 +318,6 @@ def venus_multip(
 
     # define the augmentation pipeline
     augm_layers = [
-        
         RandomTranslation(
             height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode="nearest"
         ),
