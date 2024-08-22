@@ -242,20 +242,20 @@ class MultiPModel(keras.Model):
         self.concatenate = Concatenate()
         
 
-    def call(self, x, res=None, training=None):
+    def call(self, x, res=None, training=None, no_smooth=False):
 
         if training is None:
             training = self.training
 
         for i, l in enumerate(self.augm_layers):
             if i == self.SMOOTHING_LAYER:
-                x, sigma = l(x, training=training)
+                x, sigma = l(x, training=(not no_smooth))
             else:
                 x = l(x, training=training)
 
         x = self.norm(x)
 
-        if training:
+        if not no_smooth:
             res = sigma
 
         for rb in self.res_blocks:
@@ -266,7 +266,7 @@ class MultiPModel(keras.Model):
         x = self.concatenate([x, resx])
 
         for dl in self.dense:
-            x = self.drop(x)
+            x = self.drop(x, training=training)
             x = dl(x)
 
         x = self.out(x)
