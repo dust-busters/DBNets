@@ -17,7 +17,7 @@ from config import normalize_input_data
 from train_multip import __LABELS__
 
 
-def test(model, data, testing_resolutions=[0, 0.05, 0.1, 0.15], mcdrop=0):
+def test(model, data, testing_resolutions=[0., 0.05, 0.1, 0.15], mcdrop=0):
     results = {}
     # Unpack the data
     x, y = data
@@ -72,17 +72,19 @@ parser.add_argument(
     "--times",
     "-t",
     nargs="+",
+    type=int
     help="times of the snapshots to be used for testing",
     required=False,
     default=[500, 1000, 1500],
 )
-parser.add_argument("--data", "-d", help="path to data folder")
-parser.add_argument("--inp-key", help="key to get inputs from the data dict", default='inp_test1')
-parser.add_argument("--targ-key", help="key to get targets from the data dict", default='targ_test1')
+parser.add_argument("--data", "-d", help="path to data folder", type=str)
+parser.add_argument("--inp-key", help="key to get inputs from the data dict", type=str, default='inp_test1')
+parser.add_argument("--targ-key", help="key to get targets from the data dict", type=str,default='targ_test1')
 parser.add_argument(
     "--testing-resolutions",
     "-r",
     nargs="+",
+    type=float,
     default=[0, 0.05, 0.1, 0.15],
     help="beam sizes in units of planet position to test for",
 )
@@ -137,6 +139,7 @@ for i_batch in tqdm(range(n_batch), desc='Iterating over batches'):
         testing_resolutions=args.testing_resolutions,
         mcdrop=args.mc_drop,
     )
+    
     if i_batch==0:
         results = new_results
     else:
