@@ -44,15 +44,16 @@ def test(model, data, testing_resolutions=[0., 0.05, 0.1, 0.15], mcdrop=0):
             if metric.name != "loss":
                 metric.update_state(y, y_pred)
                 for name, val in metric.result().items():
-                    results[f"{name}_r{res}"] = val
+                    results[f"{name}_r{res}"] = np.array([val])
             else:
                 metric.update_state(loss)
-                results[f"{metric.name}_r{res}"] = metric.result()
+                results[f"{metric.name}_r{res}"] = np.array([metric.result()])
                 results["loss"] += metric.result() / len(testing_resolutions)
         # Return a dict mapping metric names to current value.
         # Note that it will include the loss (tracked in self.metrics).
         for m in model.metrics:
             m.reset_state()
+    results["loss"] = np.array([results["loss"]])
     return results
 
 
