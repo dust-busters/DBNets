@@ -72,7 +72,7 @@ parser.add_argument(
     "--times",
     "-t",
     nargs="+",
-    type=int
+    type=int,
     help="times of the snapshots to be used for testing",
     required=False,
     default=[500, 1000, 1500],
