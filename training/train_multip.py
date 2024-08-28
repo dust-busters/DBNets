@@ -249,7 +249,7 @@ def train(params=None):
 
         params["sweep"] = True
         params["saving_folder"] = (
-            f"{params['saving_folder']}/{params['name']}/{time.time()}"
+            f"{params['saving_folder_g']}/{params['name']}/{time.time()}"
         )
     else:
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"

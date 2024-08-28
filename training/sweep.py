@@ -7,7 +7,7 @@ global_params = {
     "name": "test_sweep",
     "times": [500, 1000, 1500],
     "data_path": "training_data/only_subs_nosmooth_nonorm/",
-    "saving_folder": "trained/",
+    "saving_folder_g": "trained/",
     "override": True,
     "resume": False,
 }
