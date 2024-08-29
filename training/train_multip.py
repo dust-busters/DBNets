@@ -93,14 +93,16 @@ class WandbClfEvalCallback(WandbEvalCallback):
 
 
 # function that trains one fold
-def train_core(params, data, fold):
+def train_core(params_g, data, fold):
 
-    with wandb.init(project=project_name, config=params, name=params["name"]):
+    with wandb.init(project=project_name, config=params_g, name=params_g["name"]):
 
         # if running a sweep concatenate these parameters with those drawn by the agent
-        if params["sweep"]:
-            wandb.config.update(params)
+        if params_g["sweep"]:
+            wandb.config.update(params_g)
             params = wandb.config
+        else:
+            params=params_g
 
         # saving start time
         start_time = time.time()
