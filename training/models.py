@@ -199,6 +199,8 @@ class MultiPModel(keras.Model):
             "maximum_res": self.maximum_res,
             "training": self.training,
             "testing_resolutions": self.testing_resolutions,
+            "dense_dimensions": self.dense_dimensions,
+            "res_blocks": self.res_blocks
         }
         return {**base_config, **config}
 
@@ -211,6 +213,8 @@ class MultiPModel(keras.Model):
         maximum_res=0.2,
         training=False,
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
+        dense_dimensions = [256, 256, 256, 128],
+        res_blocks = [32,64,128]
         **args,
     ):
         super().__init__()
@@ -231,13 +235,15 @@ class MultiPModel(keras.Model):
         self.training = training
         self.testing_resolutions = testing_resolutions
         self.SMOOTHING_LAYER = 3
+        self.res_blocks = res_blocks
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
-        self.res_blocks = [ResBlock(n, initializer=None) for n in [32, 64, 128]]
+        self.res_blocks = [ResBlock(n, initializer=None) for n in res_blocks]
         self.dropout_rate = dropout
         self.drop = Dropout(dropout)
         self.flatten = Flatten()
         self.dense_res = Dense(256, activation=act, input_shape=(1,))
-        self.dense = [Dense(n, activation=act) for n in [256, 256, 256, 128]]
+        self.dense_dimensions = dense_dimensions
+        self.dense = [Dense(n, activation=act) for n in dense_dimensions]
         self.out = Dense(6, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
         

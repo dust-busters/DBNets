@@ -2,6 +2,7 @@ import wandb
 import os
 import argparse
 import time
+from config import normalize_input_data, standardize_input_data, log_and_standardize_input_data, log_and_normalize_input_data
 
 global_params = {
     "name": "test_sweep",
@@ -17,7 +18,7 @@ sweep_config = {
     "metric": {"name": "val_loss", "goal": "minimize"},
     "parameters": {
         "img_pixel_size": {"value": (128, 128)},
-        "lr": {"distribution": "uniform", "min": 5e-5, "max": 5e-3},
+        "lr": {"distribution": "uniform", "min": 5e-6, "max": 1e-4},
         "activation": {"values": ["leaky_relu", "relu", "elu"]},
         "smoothing": {"value": True},
         "dropout": {"distribution": "uniform", "min": 0.1, "max": 0.5},
@@ -27,12 +28,15 @@ sweep_config = {
             "max": 0.05,
         },
         "noise": {"distribution": "uniform", "min": 0.01, "max": 0.1},
-        "maximum_augm_resolution": {"distribution": "uniform", "min": 0.05, "max": 0.2},
+        "maximum_augm_resolution": {"distribution": "uniform", "min": 0.15, "max": 0.2},
         "early_stopping": {"value": False},
         "patience": {"value": 200},
         "batch_size": {"values": [8, 16, 32, 64, 128]},
         "seed": {"value": 47656344 % (58 + 1)},
         "sweep": {"value": True},
+        "dense_dimensions": {"value": [[256,256,256,128], [256,256,128], [256, 128], [256,128,128], [256,128,64]]},
+        "res_blocks": {"values": [[32,64,128], [64, 128, 256]]},
+        "norm_input": {"values": [normalize_input_data, standardize_input_data, log_and_normalize_input_data, log_and_standardize_input_data]}
     },
 }
 

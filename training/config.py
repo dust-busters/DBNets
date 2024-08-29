@@ -1,5 +1,25 @@
 import numpy as np
 
+def normalize_input_data(data):
+    maximums = np.max(data.reshape(-1, 128*128), axis=1).reshape(-1,1,1,1)
+    data = data/maximums
+    return data
+
+def standardize_input_data(data):
+    data = (data-data.mean(axis=(1,2,3)))/data.std(axis=(1,2,3))
+    return data
+
+def log_and_standardize_input_data(data):
+    data = np.log10(data+1e-12)
+    data = (data-data.mean(axis=(1,2,3)))/data.std(axis=(1,2,3))
+    return data
+
+def log_and_normalize_input_data(data):
+    data = np.log10(data+1e-12)
+    maximums = np.max(data.reshape(-1, 128*128), axis=1).reshape(-1,1,1,1)
+    data = data/maximums
+    return data
+
 configs = [
           {
 'name': f'test',
@@ -21,10 +41,8 @@ configs = [
 'times': [500,1000,1500],
 'saving_folder': 'trained/final_allt',
 'override': True,
-'resume': False
+'resume': False,
+'res_blocks': [32,64,128],
+'dense_dimensions': [256,256,256,128],
+'norm_input': standardize_input_data
 }]
-
-def normalize_input_data(data):
-    maximums = np.max(data.reshape(-1, 128*128), axis=1).reshape(-1,1,1,1)
-    data = data/maximums
-    return data

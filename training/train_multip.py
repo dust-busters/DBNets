@@ -140,8 +140,8 @@ def train_core(params, data, fold):
 
         # normalizing input data
         print("Normalizing data")
-        train_inp = normalize_input_data(train_inp)
-        test_inp = normalize_input_data(test_inp)
+        train_inp = params['norm_input'](train_inp)
+        test_inp = params['norm_input'](test_inp)
 
         # instantiating the CNN model
         print("Creating CNN model")
@@ -153,6 +153,8 @@ def train_core(params, data, fold):
             noise=params["noise"],
             maximum_res=params["maximum_augm_resolution"],
             training=True,
+            res_blocks=params['res_blocks'],
+            dense_dimensions=params['dense_dimensions']
         )
 
         # preparing optimizer
