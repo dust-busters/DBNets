@@ -6,12 +6,12 @@ def normalize_input_data(data):
     return data
 
 def standardize_input_data(data):
-    data = (data-data.mean(axis=(1,2,3)))/data.std(axis=(1,2,3))
+    data = (data-data.mean(axis=(1,2,3)).reshape(-1,1,1,1))/data.std(axis=(1,2,3)).reshape(-1,1,1,1)
     return data
 
 def log_and_standardize_input_data(data):
     data = np.log10(data+1e-12)
-    data = (data-data.mean(axis=(1,2,3)))/data.std(axis=(1,2,3))
+    data = (data-data.mean(axis=(1,2,3)).reshape(-1,1,1,1))/data.std(axis=(1,2,3)).reshape(-1,1,1,1)
     return data
 
 def log_and_normalize_input_data(data):
