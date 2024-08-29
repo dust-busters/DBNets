@@ -20,6 +20,13 @@ def log_and_normalize_input_data(data):
     data = data/maximums
     return data
 
+norm_functions = {
+    'normalize_input_data': normalize_input_data,
+    'standardize_input_data': standardize_input_data,
+    'log_and_normalize_input_data': log_and_normalize_input_data,
+    'log_and_standardize_input_data': log_and_standardize_input_data
+}
+
 configs = [
           {
 'name': f'test',
@@ -44,5 +51,5 @@ configs = [
 'resume': False,
 'res_blocks': [32,64,128],
 'dense_dimensions': [256,256,256,128],
-'norm_input': standardize_input_data
+'norm_input': 'standardize_input_data'
 }]

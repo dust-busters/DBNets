@@ -14,7 +14,7 @@ import models
 import wandb
 import pandas as pd
 from config import configs
-from config import normalize_input_data
+from config import norm_functions
 import os
 import tensorflow as tf
 import itertools as it
@@ -140,8 +140,8 @@ def train_core(params, data, fold):
 
         # normalizing input data
         print("Normalizing data")
-        train_inp = params['norm_input'](train_inp)
-        test_inp = params['norm_input'](test_inp)
+        train_inp = norm_functions[params['norm_input']](train_inp)
+        test_inp = norm_functions[params['norm_input']](test_inp)
 
         # instantiating the CNN model
         print("Creating CNN model")

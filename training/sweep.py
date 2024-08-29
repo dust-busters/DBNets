@@ -36,7 +36,7 @@ sweep_config = {
         "sweep": {"value": True},
         "dense_dimensions": {"value": [[256,256,256,128], [256,256,128], [256, 128], [256,128,128], [256,128,64]]},
         "res_blocks": {"values": [[32,64,128], [64, 128, 256]]},
-        "norm_input": {"values": [normalize_input_data, standardize_input_data, log_and_normalize_input_data, log_and_standardize_input_data]}
+        "norm_input": {"values": ['normalize_input_data', 'standardize_input_data', 'log_and_normalize_input_data', 'log_and_standardize_input_data']}
     },
 }
 
