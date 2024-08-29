@@ -241,6 +241,8 @@ def train_core(params, data, fold):
         del train_inp
         del test_inp
         gc.collect()
+        
+        wandb.finish()
 
 
 def train(params=None):
