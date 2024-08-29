@@ -5,7 +5,7 @@ import time
 from config import normalize_input_data, standardize_input_data, log_and_standardize_input_data, log_and_normalize_input_data
 
 global_params = {
-    "name": "test_sweep",
+    "name": "archandnorm_bayes_sweep",
     "times": [500, 1000, 1500],
     "data_path": "training_data/only_subs_nosmooth_nonorm/",
     "saving_folder_g": "trained/",
@@ -14,7 +14,7 @@ global_params = {
 }
 
 sweep_config = {
-    "method": "random",
+    "method": "bayes",
     "metric": {"name": "val_loss", "goal": "minimize"},
     "parameters": {
         "img_pixel_size": {"value": (128, 128)},
