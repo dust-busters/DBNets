@@ -214,7 +214,7 @@ class MultiPModel(keras.Model):
         training=False,
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
         dense_dimensions = [256, 256, 256, 128],
-        res_blocks = [32,64,128]
+        res_blocks = [32,64,128],
         **args,
     ):
         super().__init__()
