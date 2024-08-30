@@ -13,7 +13,7 @@ import tensorflow as tf
 sys.path.append("../training")
 
 import models
-from config import normalize_input_data
+from config import norm_functions
 from train_multip import __LABELS__
 
 
@@ -96,6 +96,12 @@ parser.add_argument(
     default=10,
     type=int
 )
+parser.add_argument(
+    '--norm',
+    '-n',
+    type=str,
+    help="name of the normalization function"
+)
 parser.add_argument('--mc-drop',
                     '-mc',
                     help='number of samples for mc dropout',
@@ -124,7 +130,7 @@ test_inp = np.concatenate(
     [np.expand_dims(data[f"time{t}"][args.inp_key], axis=3) for t in args.times],
     axis=0,
 )
-test_inp = normalize_input_data(test_inp)
+test_inp = norm_functions[args.norm](test_inp)
 
 target_test = np.concatenate(
     [data[f"time{t}"][args.targ_key] for t in args.times], axis=0
