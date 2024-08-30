@@ -241,7 +241,8 @@ class MultiPModel(keras.Model):
     @classmethod
     def from_config(cls, config, custom_objects=None):
         from keras.src.models.functional import Functional
-        config['res_blocks'] = custom_objects['n_res_blocks']
+        ress = np.load('n_res_block.npy').tolist()
+        config['res_blocks'] = ress
         functional_config_keys = [
             "name",
             "layers",
