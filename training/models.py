@@ -131,6 +131,39 @@ class RandomBeamBase(keras.layers.Layer):
 
 
 @keras.saving.register_keras_serializable(package="MyMultiPLayers")
+class RandomDiscCut(keras.layers.Layer):
+
+    def generate_masks(self, min_rout, max_rout, n):
+        x = tf.linspace(-4, 4, 128)
+        y = tf.linspace(-4, 4, 128)
+        xx, yy = tf.meshgrid(x, y)
+        xx = tf.reshape(xx, (1, 128, 128))
+        yy = tf.reshape(yy, (1, 128, 128))
+        rcut = tf.reshape(tf.linspace(min_rout, max_rout, n), (-1,1,1))
+
+        masks = tf.cast((xx**2 + yy**2) < rcut**2, dtype=tf.float32)
+        masks = tf.reshape(masks, (*tf.shape(masks), 1))
+
+        return masks
+
+    def __init__(self, min_rout, max_rout, n_masks=100):
+        super().__init__()
+        self.min_rout = min_rout
+        self.max_rout = max_rout
+        self.n_masks = n_masks
+        self.masks = self.generate_masks(self.min_rout, self.max_rout, self.n_masks)
+
+    def call(self, x, training=None):
+        if training:
+            i_masks = tf.random.uniform(
+                shape=(tf.shape(x)[0],), maxval=self.n_masks, dtype=tf.int32
+            )
+            return x * tf.gather(self.masks, i_masks, axis=0)
+        else:
+            return x
+
+
+@keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class ResBlock(keras.Model):
     def __init__(self, kernel_n, depth=3, initializer=None):
         super().__init__()
@@ -200,7 +233,7 @@ class MultiPModel(keras.Model):
             "training": self.training,
             "testing_resolutions": self.testing_resolutions,
             "dense_dimensions": self.dense_dimensions,
-            "res_blocks": self.res_blocks
+            "res_blocks": self.n_res_blocks,
         }
         return {**base_config, **config}
 
@@ -213,8 +246,8 @@ class MultiPModel(keras.Model):
         maximum_res=0.2,
         training=False,
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
-        dense_dimensions = [256, 256, 256, 128],
-        res_blocks = [32,64,128],
+        dense_dimensions=[256, 256, 256, 128],
+        res_blocks=[32, 64, 128],
         **args,
     ):
         super().__init__()
@@ -235,7 +268,7 @@ class MultiPModel(keras.Model):
         self.training = training
         self.testing_resolutions = testing_resolutions
         self.SMOOTHING_LAYER = 3
-        self.res_blocks = res_blocks
+        self.n_res_blocks = res_blocks
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
         self.res_blocks = [ResBlock(n, initializer=None) for n in res_blocks]
         self.dropout_rate = dropout
@@ -246,7 +279,6 @@ class MultiPModel(keras.Model):
         self.dense = [Dense(n, activation=act) for n in dense_dimensions]
         self.out = Dense(6, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
-        
 
     def call(self, x, res=None, training=None, no_smooth=False):
 
