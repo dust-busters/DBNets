@@ -3,8 +3,9 @@ import numpy as np
 import models
 import os
 import keras
+from ast import literal_eval
 
-para = pd.read_csv("parafix.csv", sep=";")
+para = pd.read_csv("parafix.csv", sep=";", converters={'n_res_block': literal_eval})
 
 custom_o = {f"mse_of_output_{i}": models.separate_mse(i) for i in range(6)}
 
@@ -19,3 +20,4 @@ for i, row in para.iterrows():
                 custom_objects=custom_o,
             )
             loaded_model.save(filein)
+            print(f'Fixed {filein}')
