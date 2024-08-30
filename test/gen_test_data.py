@@ -115,7 +115,10 @@ loaded_model = keras.saving.load_model(
 # load data
 data = {}
 for t in args.times:
-    data[f"time{t}"] = np.load(f"{args.data}/{t}/data.npy", allow_pickle=True).item()
+    try:
+        data[f"time{t}"] = np.load(f"{args.data}/{t}/data.npy", allow_pickle=True).item()
+    except AttributeError:
+        data[f"time{t}"] = np.load(f"{args.data}/{t}/data.npy", allow_pickle=True)
 
 test_inp = np.concatenate(
     [np.expand_dims(data[f"time{t}"][args.inp_key], axis=3) for t in args.times],
