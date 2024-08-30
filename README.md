@@ -34,4 +34,9 @@ To use the new enviroment within a jupyter-notebook, for instance for running th
 
 Once this is done, it is possible to select the new kernel from any jupyter-notebook.
 
+## Paper
+Ruzza et al. (2024): https://doi.org/10.1051/0004-6361/202348421.
 
+## Aknowledgments
+
+Computational resources have been provided by INDACO Core facility, which is a project of High Performance Computing at the Università degli Studi di Milano (https://www.unimi.it). This work has been supported by Fondazione Cariplo,grant n° 2022-1217, from the European Union’s Horizon Europe Research & Innovation Programme under the Marie Sklodowska-Curie grant agreement No.823823 (DUSTBUSTERS) and from the European Research Council (ERC) under grant agreement no. 101039651 (DiscEvol).
