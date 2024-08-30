@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import models
 import os
+import keras
 
 para = pd.read_csv("parafix.csv", sep=";")
 
