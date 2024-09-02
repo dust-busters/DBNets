@@ -17,7 +17,7 @@ from config import norm_functions
 from train_multip import __LABELS__
 
 
-def test(model, data, testing_resolutions=[0., 0.05, 0.1, 0.15], mcdrop=0):
+def test(model, data, testing_resolutions=[0., 0.05, 0.1, 0.15], mcdrop=0, only_dropout=False):
     results = {}
     # Unpack the data
     x, y = data
@@ -35,7 +35,9 @@ def test(model, data, testing_resolutions=[0., 0.05, 0.1, 0.15], mcdrop=0):
             sigma = np.repeat(sigma, mcdrop, axis=0)
             smoothed_x = np.repeat(smoothed_x, mcdrop, axis=0)
         # Compute predictions
-        y_pred = model(smoothed_x, res=sigma, training=mcdrop > 1, no_smooth=True)
+        training = (mcdrop>1) and (not only_dropout)
+        mcdropout = (mcdrop>1) or only_dropout
+        y_pred = model(smoothed_x, res=sigma, training=training, no_smooth=True, mcdropout=mcdropout)
         results[f"y_pred_r{res}"] = y_pred.numpy().reshape(-1, mcdrop, 6)
         # Updates the metrics tracking the loss
         loss = model.compute_loss(y=y, y_pred=y_pred)
@@ -81,6 +83,7 @@ parser.add_argument(
 parser.add_argument("--data", "-d", help="path to data folder", type=str)
 parser.add_argument("--inp-key", help="key to get inputs from the data dict", type=str, default='inp_test1')
 parser.add_argument("--targ-key", help="key to get targets from the data dict", type=str,default='targ_test1')
+parser.add_argument("--only-dropout", help='use only dropout for mc sampling of properties', action="store_true")
 parser.add_argument(
     "--testing-resolutions",
     "-r",

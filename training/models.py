@@ -281,7 +281,7 @@ class MultiPModel(keras.Model):
         self.out = Dense(6, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
 
-    def call(self, x, res=None, training=None, no_smooth=False):
+    def call(self, x, res=None, training=None, no_smooth=False, mcdropout=False):
 
         if training is None:
             training = self.training
@@ -305,7 +305,7 @@ class MultiPModel(keras.Model):
         x = self.concatenate([x, resx])
 
         for dl in self.dense:
-            x = self.drop(x, training=training)
+            x = self.drop(x, training=(training or mcdropout))
             x = dl(x)
 
         x = self.out(x)
