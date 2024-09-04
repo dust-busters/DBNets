@@ -138,7 +138,7 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
     print(x.shape)
     print(theta.shape)
     ranks, dap_samples = run_sbc(
-        x, theta, posterior, num_posterior_samples=params['num_posterior_samples'], num_workers=12
+        theta, x, posterior, num_posterior_samples=params['num_posterior_samples'], num_workers=12
     )
 
     #run checks on sbc results
