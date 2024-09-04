@@ -135,6 +135,8 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
 
     #run sbc
     from sbi.diagnostics import run_sbc
+    print(x.shape)
+    print(theta.shape)
     ranks, dap_samples = run_sbc(
         x, theta, posterior, num_posterior_samples=params['num_posterior_samples'], num_workers=12
     )
