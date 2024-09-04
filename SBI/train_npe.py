@@ -8,7 +8,7 @@ import wandb
 
 sys.path.append("../training")
 from train_multip import __LABELS__
-from config import configs
+from config import params
 import pickle
 from ctypes import util
 from sbi.inference import NPE
@@ -29,10 +29,6 @@ def concat_dict(a, b):
         data[key] = np.concatenate([a[key], b[key]])
 
     return data
-
-with open('config.yml', 'r') as file:
-    params = yaml.safe_load(file)
-    
 
 if not os.path.exists("outputs"):
     os.mkdir("outputs")
