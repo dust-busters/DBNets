@@ -153,10 +153,10 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
         plot_type="hist",
         num_bins=None,  # by passing None we use a heuristic for the number of bins.
     )
-    wandb.log({"sbc_hist": plt})
+    wandb.log({"sbc_hist": f})
 
     f, ax = sbc_rank_plot(ranks, num_posterior_samples=params['num_posterior_samples'], plot_type="cdf")
-    wandb.log({"sbc_cdf": plt})
+    wandb.log({"sbc_cdf": f})
 
     #run tarp check
     from sbi.diagnostics import run_tarp
@@ -166,12 +166,12 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
         x,
         posterior,
         references=None,  # will be calculated automatically.
-        num_posterior_samples=parms['num_posterior_samples'],
+        num_posterior_samples=params['num_posterior_samples'],
     )
     atc, ks_pval = check_tarp(ecp, alpha)
     wandb.log({'tarp_atc': atc, 'tarp_ks_pval': ks_pval})
     
     from sbi.analysis.plot import plot_tarp
     plot_tarp(ecp, alpha)
-    wandb.log({"tarp_plot": plt})
+    wandb.log({"tarp_plot": plt.gcf()})
     
