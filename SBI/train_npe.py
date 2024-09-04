@@ -40,7 +40,7 @@ print(f'Saving folder: {out_folder}')
 
 os.system(f"cp train_npe.py {out_folder}/train_npe.npy")
 
-print(f'Loading data in test partition of all folds except {params['test_fold']}')
+print(f"Loading data in test partition of all folds except {params['test_fold']}")
 all_data = None
 for fold, test_d in enumerate(params['test_data']):
     if fold + 1 != params['test_fold']:
