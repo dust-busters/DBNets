@@ -8,7 +8,7 @@ import wandb
 
 sys.path.append("../training")
 from train_multip import __LABELS__
-from config import params
+from params import params
 import pickle
 from ctypes import util
 from sbi.inference import NPE
@@ -157,6 +157,8 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
     wandb.log({"sbc_cdf": plt})
 
     #run tarp check
+    from sbi.diagnostics import run_tarp
+    from sbi.diagnostics import check_tarp
     ecp, alpha = run_tarp(
         theta,
         x,
