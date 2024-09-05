@@ -260,15 +260,16 @@ class MultiPModel(keras.Model):
                 fill_mode="nearest",
             ),
             GaussianNoise(noise),
+            RandomDiscCut(2,4,100),
             RandomBeamBase(maximum_res),
         ]
+        self.SMOOTHING_LAYER = 4
         self.act = act
         self.noise = noise
         self.maximum_translation_factor = maximum_translation_factor
         self.maximum_res = maximum_res
         self.training = training
         self.testing_resolutions = testing_resolutions
-        self.SMOOTHING_LAYER = 3
         self.n_res_blocks = res_blocks
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
         self.res_blocks = [ResBlock(n, initializer=None) for n in res_blocks]
