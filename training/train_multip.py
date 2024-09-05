@@ -247,7 +247,7 @@ def train_core(params_g, data):
             del test_inp
             gc.collect()
             
-            wandb.finish()
+        wandb.finish()
 
 
 def train(params=None):
