@@ -95,7 +95,7 @@ class WandbClfEvalCallback(WandbEvalCallback):
 # function that trains one fold
 def train_core(params_g, data):
 
-    run =  wandb.init(project=project_name, config=params_g, name=f'{params_g["name"]}'):
+    run =  wandb.init(project=project_name, config=params_g, name=f'{params_g["name"]}')
     for fold in [1, 2, 3, 4, 5]:
         
         # if running a sweep concatenate these parameters with those drawn by the agent
