@@ -286,6 +286,7 @@ def train(params=None):
             f"{params['saving_folder_g']}/{params['name']}/{params['time_id']}"
         )
     else:
+        params["time_id"] = time.time()
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
 
     # checking if exists and creating output directory if it does not
