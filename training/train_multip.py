@@ -34,6 +34,16 @@ __LABELS__ = [
     "SigmaSlope",
 ]
 
+def reset_wandb_env():
+    exclude = {
+        "WANDB_PROJECT",
+        "WANDB_ENTITY",
+        "WANDB_API_KEY",
+    }
+    for k, v in os.environ.items():
+        if k.startswith("WANDB_") and k not in exclude:
+            del os.environ[k]
+
 
 # wandb callback for visualizing results
 class WandbClfEvalCallback(WandbEvalCallback):
@@ -95,9 +105,22 @@ class WandbClfEvalCallback(WandbEvalCallback):
 # function that trains one fold
 def train_core(params_g, data):
 
-    run =  wandb.init(project=project_name, config=params_g, name=f'{params_g["name"]}')
+    #things to log multiple folds
+    sweep_run = wandb.init()
+    sweep_id = sweep_run.sweep_id or "unknown"
+    sweep_url = sweep_run.get_sweep_url()
+    project_url = sweep_run.get_project_url()
+    sweep_group_url = "{}/groups/{}".format(project_url, sweep_id)
+    sweep_run.notes = sweep_group_url
+    sweep_run.save()
+    sweep_run_name = sweep_run.name or sweep_run.id or "unknown_2"
+    sweep_run_id = sweep_run.id
+    sweep_run.finish()
+    wandb.sdk.wandb_setup._setup(_reset=True)
+    
     for fold in [1, 2, 3, 4, 5]:
-        
+        reset_wandb_env()
+        run =  wandb.init(project=project_name, config=params_g, group=f'{params_g["name"]}.{params_g["time_id"]}', name=f'{params_g["name"]}', reinit=True)
         # if running a sweep concatenate these parameters with those drawn by the agent
         if params_g["sweep"]:
             wandb.config.update(params_g)
@@ -248,7 +271,7 @@ def train_core(params_g, data):
         del test_inp
         gc.collect()
         
-    wandb.finish()
+        run.finish()
 
 
 def train(params=None):
@@ -258,8 +281,9 @@ def train(params=None):
         from sweep import global_params as params
 
         params["sweep"] = True
+        params["time_id"] = time.time()
         params["saving_folder"] = (
-            f"{params['saving_folder_g']}/{params['name']}/{time.time()}"
+            f"{params['saving_folder_g']}/{params['name']}/{params['time_id']}"
         )
     else:
         params["saving_folder"] = f"{params['saving_folder']}/{params['name']}"
