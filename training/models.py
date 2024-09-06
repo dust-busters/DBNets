@@ -55,7 +55,6 @@ def inner_part_separate_mse(y_true, y_pred, i):
     square_d = K.square(d[:, i])
     return K.mean(square_d)  # y has shape [batch_size, output_dim]
 
-
 def separate_mse(i):
     def custom_metric_i(y_true, y_pred):
         return inner_part_separate_mse(y_true, y_pred, i)
@@ -65,8 +64,8 @@ def separate_mse(i):
 def get_fold_metric(i):
     def fold_metric(y_true, y_pred):
         return i
-    get_fold_metric.__name__ = "fold_no"
-    return get_fold_metric
+    fold_metric.__name__ = "fold_no"
+    return fold_metric
 
 ########################## model with multiple parameters #############################################
 
