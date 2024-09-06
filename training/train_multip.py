@@ -95,159 +95,160 @@ class WandbClfEvalCallback(WandbEvalCallback):
 # function that trains one fold
 def train_core(params_g, data):
 
-    with wandb.init(project=project_name, config=params_g, name=f'{params_g["name"]}'):
-        for fold in [1, 2, 3, 4, 5]:
+    run =  wandb.init(project=project_name, config=params_g, name=f'{params_g["name"]}'):
+    for fold in [1, 2, 3, 4, 5]:
+        
+        # if running a sweep concatenate these parameters with those drawn by the agent
+        if params_g["sweep"]:
+            wandb.config.update(params_g)
+            params = wandb.config
+        else:
+            params=params_g
             
-            # if running a sweep concatenate these parameters with those drawn by the agent
-            if params_g["sweep"]:
-                wandb.config.update(params_g)
-                params = wandb.config
-            else:
-                params=params_g
-                
-            wandb.run.tags = [f"fold_{fold}"]
+        wandb.run.tags = [f"fold_{fold}"]
 
-            # saving start time
-            start_time = time.time()
+        # saving start time
+        start_time = time.time()
 
-            # loading the training data concatenating the different times
-            print("Loading data")
-            train_inp = np.concatenate(
-                [
-                    np.expand_dims(data[f"time{t}"][f"inp_train{fold}"], axis=3)
-                    for t in params["times"]
-                ],
-                axis=0,
-            )
-            target_train = np.concatenate(
-                [
-                    # this is necessary because labels have been wrongly packed
-                    np.concatenate(
-                        [
-                            data[f"time{t}"][f"targ_train{fold}"].reshape(-1, 6)[i::3]
-                            for i in range(3)
-                        ]
-                    )
-                    for t in params["times"]
-                ],
-                axis=0,
-            )
-            test_inp = np.concatenate(
-                [
-                    np.expand_dims(data[f"time{t}"][f"inp_test{fold}"], axis=3)
-                    for t in params["times"]
-                ],
-                axis=0,
-            )
-            target_test = np.concatenate(
-                [data[f"time{t}"][f"targ_test{fold}"] for t in params["times"]], axis=0
-            )
-
-            # normalizing input data
-            print("Normalizing data")
-            train_inp = norm_functions[params['norm_input']](train_inp)
-            test_inp = norm_functions[params['norm_input']](test_inp)
-
-            # instantiating the CNN model
-            print("Creating CNN model")
-            model = models.MultiPModel(
-                act=params["activation"],
-                dropout=params["dropout"],
-                seed=params["seed"],
-                maximum_translation_factor=params["maximum_translation_factor"],
-                noise=params["noise"],
-                maximum_res=params["maximum_augm_resolution"],
-                training=True,
-                res_blocks=params['res_blocks'],
-                dense_dimensions=params['dense_dimensions']
-            )
-
-            # preparing optimizer
-            optimizer = keras.optimizers.Adam(learning_rate=params["lr"])
-
-            # preparing callback for early stopping
-            es2 = keras.callbacks.EarlyStopping(
-                monitor="val_loss",
-                mode="min",
-                verbose=1,
-                patience=params["patience"],
-                restore_best_weights=True,
-            )
-            if params["early_stopping"]:
-                cb = [es2]
-            else:
-                cb = []
-
-            # preparing metrics (mse computed on each output)
-            metrics = [models.separate_mse(i) for i in range(6)]
-
-            # preparing wandb callback
-            wandb_callbacks = [
-                WandbMetricsLogger(log_freq="epoch"),
-                WandbClfEvalCallback(
-                    (
-                        tf.convert_to_tensor(test_inp, dtype=tf.float32),
-                        tf.convert_to_tensor(target_test, dtype=tf.float32),
-                    )
-                ),
-            ]
-            cb = cb + wandb_callbacks
-
-            # compiling model
-            model.compile(loss="mse", optimizer=optimizer, metrics=metrics)
-
-            # training
-            print("Starting training")
-            history = model.fit(
-                x=train_inp,
-                y=target_train,
-                batch_size=params["batch_size"],
-                epochs=500,
-                verbose=1,
-                shuffle=True,
-                validation_data=(test_inp, target_test),
-                callbacks=cb,
-            )
-
-            # computing summarizing scores after training
-            print("Training finished. Computing evaluation metrics.")
-            scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
-            scores_train = model.evaluate(
-                train_inp, target_train, verbose=0, return_dict=True
-            )
-
-            # save models
-            print("Saving model")
-            saving_file = f"{params['saving_folder']}/{params['name']}.{fold}.keras"
-
-            model.save(saving_file)
-            del model
-
-            # save history
-            with open(
-                f"{params['saving_folder']}/histories/history.{fold}.hist", "wb"
-            ) as file_h:
-                pickle.dump(history.history, file_h)
-
-            # save score
-            with open(f"{params['saving_folder']}/scores.data", "a") as scores_file:
-                # img size, fold, mse, mae
-                scores_file.write(
-                    f"{params['name']},  {fold}, {scores_train['loss']}, {scores_test['loss']}, {time.time()-start_time}\n"
+        # loading the training data concatenating the different times
+        print("Loading data")
+        train_inp = np.concatenate(
+            [
+                np.expand_dims(data[f"time{t}"][f"inp_train{fold}"], axis=3)
+                for t in params["times"]
+            ],
+            axis=0,
+        )
+        target_train = np.concatenate(
+            [
+                # this is necessary because labels have been wrongly packed
+                np.concatenate(
+                    [
+                        data[f"time{t}"][f"targ_train{fold}"].reshape(-1, 6)[i::3]
+                        for i in range(3)
+                    ]
                 )
+                for t in params["times"]
+            ],
+            axis=0,
+        )
+        test_inp = np.concatenate(
+            [
+                np.expand_dims(data[f"time{t}"][f"inp_test{fold}"], axis=3)
+                for t in params["times"]
+            ],
+            axis=0,
+        )
+        target_test = np.concatenate(
+            [data[f"time{t}"][f"targ_test{fold}"] for t in params["times"]], axis=0
+        )
 
-            # save configuration
-            params["wall_time"] = time.time() - start_time
+        # normalizing input data
+        print("Normalizing data")
+        train_inp = norm_functions[params['norm_input']](train_inp)
+        test_inp = norm_functions[params['norm_input']](test_inp)
 
-            # log time to wandb
-            wandb.log({"wall_time": params["wall_time"] / 1000})
+        # instantiating the CNN model
+        print("Creating CNN model")
+        model = models.MultiPModel(
+            act=params["activation"],
+            dropout=params["dropout"],
+            seed=params["seed"],
+            maximum_translation_factor=params["maximum_translation_factor"],
+            noise=params["noise"],
+            maximum_res=params["maximum_augm_resolution"],
+            training=True,
+            res_blocks=params['res_blocks'],
+            dense_dimensions=params['dense_dimensions']
+        )
 
-            print(f'The process took {params["wall_time"]/1000} s.')
-            del train_inp
-            del test_inp
-            gc.collect()
-            
-        wandb.finish()
+        # preparing optimizer
+        optimizer = keras.optimizers.Adam(learning_rate=params["lr"])
+
+        # preparing callback for early stopping
+        es2 = keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            mode="min",
+            verbose=1,
+            patience=params["patience"],
+            restore_best_weights=True,
+        )
+        if params["early_stopping"]:
+            cb = [es2]
+        else:
+            cb = []
+
+        # preparing metrics (mse computed on each output)
+        metrics = [models.separate_mse(i) for i in range(6)]
+        metrics = metrics + [models.get_fold_metric(fold)]
+
+        # preparing wandb callback
+        wandb_callbacks = [
+            WandbMetricsLogger(log_freq="epoch"),
+            WandbClfEvalCallback(
+                (
+                    tf.convert_to_tensor(test_inp, dtype=tf.float32),
+                    tf.convert_to_tensor(target_test, dtype=tf.float32),
+                )
+            ),
+        ]
+        cb = cb + wandb_callbacks
+
+        # compiling model
+        model.compile(loss="mse", optimizer=optimizer, metrics=metrics)
+
+        # training
+        print("Starting training")
+        history = model.fit(
+            x=train_inp,
+            y=target_train,
+            batch_size=params["batch_size"],
+            epochs=500,
+            verbose=1,
+            shuffle=True,
+            validation_data=(test_inp, target_test),
+            callbacks=cb,
+        )
+
+        # computing summarizing scores after training
+        print("Training finished. Computing evaluation metrics.")
+        scores_test = model.evaluate(test_inp, target_test, verbose=0, return_dict=True)
+        scores_train = model.evaluate(
+            train_inp, target_train, verbose=0, return_dict=True
+        )
+
+        # save models
+        print("Saving model")
+        saving_file = f"{params['saving_folder']}/{params['name']}.{fold}.keras"
+
+        model.save(saving_file)
+        del model
+
+        # save history
+        with open(
+            f"{params['saving_folder']}/histories/history.{fold}.hist", "wb"
+        ) as file_h:
+            pickle.dump(history.history, file_h)
+
+        # save score
+        with open(f"{params['saving_folder']}/scores.data", "a") as scores_file:
+            # img size, fold, mse, mae
+            scores_file.write(
+                f"{params['name']},  {fold}, {scores_train['loss']}, {scores_test['loss']}, {time.time()-start_time}\n"
+            )
+
+        # save configuration
+        params["wall_time"] = time.time() - start_time
+
+        # log time to wandb
+        wandb.log({"wall_time": params["wall_time"] / 1000, 'fold': fold})
+
+        print(f'The process took {params["wall_time"]/1000} s.')
+        del train_inp
+        del test_inp
+        gc.collect()
+        
+    wandb.finish()
 
 
 def train(params=None):

@@ -59,10 +59,14 @@ def inner_part_separate_mse(y_true, y_pred, i):
 def separate_mse(i):
     def custom_metric_i(y_true, y_pred):
         return inner_part_separate_mse(y_true, y_pred, i)
-
     custom_metric_i.__name__ = f"mse_of_output_{i}"
     return custom_metric_i
 
+def get_fold_metric(i):
+    def fold_metric(y_true, y_pred):
+        return i
+    get_fold_metric.__name__ = "fold_no"
+    return get_fold_metric
 
 ########################## model with multiple parameters #############################################
 
@@ -233,7 +237,7 @@ class MultiPModel(keras.Model):
             "training": self.training,
             "testing_resolutions": self.testing_resolutions,
             "dense_dimensions": self.dense_dimensions,
-            "res_blocks": self.n_res_blocks,
+            "res_blocks": self.n_res_blocks
         }
         return {**base_config, **config}
 
