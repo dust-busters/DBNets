@@ -49,6 +49,7 @@ configs = [
 'saving_folder': 'trained/final_allt',
 'override': True,
 'resume': False,
+'epochs': 1000,
 'res_blocks': [32,64,128],
 'dense_dimensions': [256,256,256,128],
 'norm_input': 'standardize_input_data'

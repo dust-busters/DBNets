@@ -34,6 +34,7 @@ sweep_config = {
         "batch_size": {"values": [8, 16, 32, 64, 128]},
         "seed": {"value": 47656344 % (58 + 1)},
         "sweep": {"value": True},
+        "epochs": {"value":500},
         "dense_dimensions": {"values": [[256,256,256,128], [256,256,128], [256, 128], [256,128,128], [256,128,64]]},
         "res_blocks": {"values": [[32,64,128], [64, 128, 256]]},
         "norm_input": {"values": ['normalize_input_data', 'standardize_input_data', 'log_and_normalize_input_data', 'log_and_standardize_input_data']}

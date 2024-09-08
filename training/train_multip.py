@@ -226,7 +226,7 @@ def train_core(params_g, data):
             x=train_inp,
             y=target_train,
             batch_size=params["batch_size"],
-            epochs=500,
+            epochs=params['epochs'],
             verbose=1,
             shuffle=True,
             validation_data=(test_inp, target_test),
