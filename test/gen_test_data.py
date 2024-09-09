@@ -105,6 +105,7 @@ parser.add_argument(
     type=str,
     help="name of the normalization function"
 )
+parser.add_argument('--fold', '-f', help='Id of fold')
 parser.add_argument('--mc-drop',
                     '-mc',
                     help='number of samples for mc dropout',
@@ -114,6 +115,8 @@ parser.add_argument('--mc-drop',
 parser.add_argument('--output', '-o', help='output file', type=str)
 args = parser.parse_args()
 
+custom_objs = {f"mse_of_output_{i}": models.separate_mse(i) for i in range(6)}
+custom_objs['fold_no'] = models.get_fold_metric(args.fold)
 # load model
 loaded_model = keras.saving.load_model(
     args.model,
