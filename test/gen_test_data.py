@@ -105,7 +105,7 @@ parser.add_argument(
     type=str,
     help="name of the normalization function"
 )
-parser.add_argument('--fold', '-f', help='Id of fold')
+parser.add_argument('--fold', '-f', type=int, help='Id of fold')
 parser.add_argument('--mc-drop',
                     '-mc',
                     help='number of samples for mc dropout',
