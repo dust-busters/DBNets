@@ -121,7 +121,7 @@ custom_objs['fold_no'] = models.get_fold_metric(args.fold)
 loaded_model = keras.saving.load_model(
     args.model,
     compile=True,
-    custom_objects={f"mse_of_output_{i}": models.separate_mse(i) for i in range(6)},
+    custom_objects=custom_objs,
 )
 
 # load data
