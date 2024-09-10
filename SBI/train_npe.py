@@ -89,6 +89,7 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
     inference.train(
         training_batch_size=params['train_batch_size'],
         stop_after_epochs=params['min_train_epochs'],
+        learning_rate=params['learning_rate'],
         show_train_summary=True,
         validation_fraction=0.1,
     )
