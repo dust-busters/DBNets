@@ -38,7 +38,7 @@ if not os.path.exists(out_folder):
 
 print(f'Saving folder: {out_folder}')
 
-os.system(f"cp train_npe.py {out_folder}/train_npe.npy")
+os.system(f"cp params.py {out_folder}/params.npy")
 
 print(f"Loading data in test partition of all folds except {params['test_fold']}")
 all_data = None
@@ -174,4 +174,6 @@ with wandb.init(project='dbnets2.0.0_SBI', config=params):
     from sbi.analysis.plot import plot_tarp
     plot_tarp(ecp, alpha)
     wandb.log({"tarp_plot": wandb.Image(plt.gcf())})
+    
+    #run validation
     
