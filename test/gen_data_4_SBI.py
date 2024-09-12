@@ -145,7 +145,7 @@ for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
     new_results = test(
         loaded_model,
         (test_inp[i_batch].reshape(1,128,128,1), target_test[i_batch].reshape(1,6)),
-        augmentor=augmentor
+        augmentor=augmentor,
         mcdrop=args.mc_drop,
         naugm=args.n_augm
     )
