@@ -47,6 +47,7 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         else:
             for key in results.keys():
                 results[key] = np.concatenate([results[key], new_results[key]], axis=0)
+    print(results['y_pred'].shape)
     return results
 
 
@@ -157,9 +158,8 @@ for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
         mcdrop=args.mc_drop,
         n_augm=args.n_augm
     )
-    
     if i_batch==0:
-        results = new_results
+        results = new_results.copy()
     else:
         for key in results.keys():
             results[key] = np.concatenate([results[key], new_results[key]], axis=0)
