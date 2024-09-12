@@ -222,6 +222,38 @@ class ResBlock(keras.Model):
         return {**base_config, **config}
 
 
+class augmentator(keras.Model):
+    def __init__(
+        self,
+        noise=0.01,
+        maximum_translation_factor=0.1,
+        maximum_res=0.2,
+        **args,
+    ):
+        super().__init__()
+        self.augm_layers = [
+            RandomRotation(0.5, fill_mode="nearest"),
+            RandomTranslation(
+                height_factor=(-maximum_translation_factor, maximum_translation_factor),
+                width_factor=(-maximum_translation_factor, maximum_translation_factor),
+                fill_mode="nearest",
+            ),
+            GaussianNoise(noise),
+            RandomDiscCut(2,4,100),
+            RandomBeamBase(maximum_res),
+        ]
+        self.SMOOTHING_LAYER = 4
+    
+    def call(self, x):
+        for i, l in enumerate(self.augm_layers):
+            if i == self.SMOOTHING_LAYER:
+                x, sigma = l(x, training=True)
+            else:
+                x = l(x, training=True)
+        return x, sigma
+                
+    
+
 @keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class MultiPModel(keras.Model):
 
