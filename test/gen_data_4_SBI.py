@@ -33,6 +33,7 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         smoothed_x, sigma = augmentor(x)
         new_results[f"smoothed_imgs"] = smoothed_x
         new_results[f'sigma'] = [sigma]
+        new_results['y'] = y
         if mcdrop > 1:
             sigma = np.repeat(sigma, mcdrop, axis=0)
             smoothed_x = np.repeat(smoothed_x, mcdrop, axis=0)
@@ -162,7 +163,7 @@ for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
     else:
         for key in results.keys():
             results[key] = np.concatenate([results[key], new_results[key]], axis=0)
-
+    print(results['y_pred'].shape)
 #save the dict results
 print(f'I got the data, dumping it to {args.output}...')
 with open(args.output, 'wb') as out_file:
