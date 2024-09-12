@@ -26,8 +26,8 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
     x, y = data
     x = tf.convert_to_tensor(x, dtype=tf.float32)
     y = tf.convert_to_tensor(y, dtype=tf.float32)
-    if mcdrop > 1:
-        y = np.repeat(y, mcdrop, axis=0)
+    if n_augm > 1:
+        y = np.repeat(y, n_augm, axis=0)
     for i in range(n_augm):
         # generate convolved testing images
         smoothed_x, sigma = augmentor(x)
@@ -39,7 +39,7 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         # Compute predictions
         training = (mcdrop>1) and (not only_dropout)
         mcdropout = (mcdrop>1) or only_dropout
-        y_pred = model(smoothed_x, res=sigma, training=False, no_smooth=True, mcdropout=mcdropout)
+        y_pred = model(smoothed_x, res=sigma, training=training, no_smooth=True, mcdropout=mcdropout)
         new_results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 6)
         if i==0:
             results = new_results
@@ -147,6 +147,7 @@ target_test = np.concatenate(
 # gen data and concatenate
 n_batch = test_inp.shape[0]
 results = {}
+print(f'{n_batch} elements augmented {args.n_augm}')
 for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
     new_results = test(
         loaded_model,
