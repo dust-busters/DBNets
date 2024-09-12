@@ -86,7 +86,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--n-augm",
-    "-n",
+    "-na",
     help="number of augmentations per image",
     default=10,
     type=int
