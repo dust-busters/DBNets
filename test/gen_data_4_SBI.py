@@ -9,12 +9,13 @@ from tqdm import tqdm
 import pickle
 import tensorflow as tf
 
-from training.models import augmentator
+
 
 # this makes the python files in ../training visible for import
 sys.path.append("../training")
 
 import models
+from models import augmentator
 from config import norm_functions
 from train_multip import __LABELS__
 
