@@ -21,18 +21,18 @@ from train_multip import __LABELS__
 
 def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
     results = {}
+    new_results = {}
     # Unpack the data
     x, y = data
     x = tf.convert_to_tensor(x, dtype=tf.float32)
     y = tf.convert_to_tensor(y, dtype=tf.float32)
-    results["loss"] = 0
     if mcdrop > 1:
         y = np.repeat(y, mcdrop, axis=0)
     for i in range(n_augm):
         # generate convolved testing images
         smoothed_x, sigma = augmentor(x)
-        results[f"smoothed_imgs"] = smoothed_x
-        results[f'sigma'] = [sigma]
+        new_results[f"smoothed_imgs"] = smoothed_x
+        new_results[f'sigma'] = [sigma]
         if mcdrop > 1:
             sigma = np.repeat(sigma, mcdrop, axis=0)
             smoothed_x = np.repeat(smoothed_x, mcdrop, axis=0)
@@ -40,7 +40,12 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         training = (mcdrop>1) and (not only_dropout)
         mcdropout = (mcdrop>1) or only_dropout
         y_pred = model(smoothed_x, res=sigma, training=False, no_smooth=True, mcdropout=mcdropout)
-        results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 6)
+        new_results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 6)
+        if i==0:
+            results = new_results
+        else:
+            for key in results.keys():
+                results[key] = np.concatenate([results[key], new_results[key]], axis=0)
     return results
 
 
@@ -148,7 +153,7 @@ for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
         (test_inp[i_batch].reshape(1,128,128,1), target_test[i_batch].reshape(1,6)),
         augmentor=augmentor,
         mcdrop=args.mc_drop,
-        naugm=args.n_augm
+        n_augm=args.n_augm
     )
     
     if i_batch==0:
