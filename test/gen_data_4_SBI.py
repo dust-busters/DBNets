@@ -26,8 +26,6 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
     x, y = data
     x = tf.convert_to_tensor(x, dtype=tf.float32)
     y = tf.convert_to_tensor(y, dtype=tf.float32)
-    if n_augm > 1:
-        y = np.repeat(y, n_augm, axis=0)
     for i in range(n_augm):
         # generate convolved testing images
         smoothed_x, sigma = augmentor(x)
