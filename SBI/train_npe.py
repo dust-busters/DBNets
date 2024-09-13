@@ -212,7 +212,7 @@ elif params['method']=='method2':
         dtype=torch.float32,
     )
     theta = torch.tensor(
-        testing_data["y"],
+        testing_data["y"][np.arange(n_sim)[::30], :],
         dtype=torch.float32,
     )
 
