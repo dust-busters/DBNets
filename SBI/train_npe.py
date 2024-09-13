@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import wandb
+import logging
 
 sys.path.append("../training")
 from train_multip import __LABELS__
@@ -16,6 +17,9 @@ from sbi import utils
 import torch
 from numpy import float32
 import yaml
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 
 def concat_dict(a, b):
@@ -31,28 +35,39 @@ def concat_dict(a, b):
 
     return data
 
-
+#creating output folder
+logger.info('Creating output folder')
 if not os.path.exists("outputs"):
     os.mkdir("outputs")
 out_folder = f"outputs/{params['run_name']}"
 if not os.path.exists(out_folder):
     os.mkdir(out_folder)
-
 print(f"Saving folder: {out_folder}")
-
 os.system(f"cp params.py {out_folder}/params.npy")
 
-print(f"Loading data in test partition of all folds except {params['test_fold']}")
+#loading data for training NPE models
+logger.info(f"Loading data for training NPE, except for folder {params['test_fold']}")
 all_data = None
 for fold, test_d in enumerate(params["test_data"]):
     if fold + 1 != params["test_fold"]:
         with open(test_d, "rb") as file:
             data = pickle.load(file)
-
+            
+        #some logging
+        logger.debug(f"Opened {test_d}, data info:")
+        for k in data.keys():
+            logger.debug(f'data[{k}]: {data["k"].shape}')
+            
         if params["method"] == "method2":
             data["targets"] = data["y"]
             all_data = concat_dict(all_data, data)
             print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
+            
+            #some logging
+            logger.debug(f"all_data info after concatenate:")
+            for k in data.keys():
+                logger.debug(f'data[{k}]: {data["k"].shape}')
+                
         else:
             # load targets
             data_t = {}
