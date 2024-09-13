@@ -52,6 +52,7 @@ for fold, test_d in enumerate(params["test_data"]):
         if params["method"] == "method2":
             data["targets"] = data["y"]
             all_data = concat_dict(all_data, data)
+            print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
         else:
             # load targets
             data_t = {}
@@ -91,7 +92,7 @@ elif params["method"] == "method2":
     print(all_data['y_pred'].shape)
     print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
     random_indices = np.random.choice(
-        all_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=False
+        all_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=True
     )
     features = all_data[f"y_pred"][
         np.arange(n_sim)[:, None], random_indices, :
