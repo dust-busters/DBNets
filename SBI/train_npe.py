@@ -172,6 +172,7 @@ with wandb.init(project="dbnets2.0.0_SBI", config=params):
         )
     elif params['method']=='method2':
         n_sim = testing_data["y_pred"].shape[0]
+        print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
         random_indices = np.random.choice(
             testing_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=False
         )
