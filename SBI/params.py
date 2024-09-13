@@ -11,5 +11,7 @@ params = {
 'train_batch_size': 16,
 'min_train_epochs': 50,
 'test_fold': 3,
+'method': 'method1',
+'concat_res': False,
 'num_posterior_samples': 1000
 }
