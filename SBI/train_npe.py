@@ -197,13 +197,17 @@ if params['method']=='method1':
         dtype=torch.float32,
     )
 elif params['method']=='method2':
+    
+    for k in testing_data.keys():
+        testing_data[k] = testing_data[k][::30]
+    
     n_sim = testing_data["y_pred"].shape[0]
     print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
     random_indices = np.random.choice(
         testing_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=True
     )
     features = testing_data[f"y_pred"][
-        np.arange(n_sim)[::30, None], random_indices, :
+        np.arange(n_sim)[:, None], random_indices, :
     ].reshape(n_sim, -1)
     if params["concat_res"]:
         features = np.concatenate([features, testing_data["sigma"].reshape(-1, 1)], axis=1)
@@ -212,7 +216,7 @@ elif params['method']=='method2':
         dtype=torch.float32,
     )
     theta = torch.tensor(
-        testing_data["y"][np.arange(n_sim)[::30], :],
+        testing_data["y"],
         dtype=torch.float32,
     )
 
