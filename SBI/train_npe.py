@@ -88,6 +88,7 @@ if params["method"] == "method1":
     )
 elif params["method"] == "method2":
     n_sim = all_data["y_pred"].shape[0]
+    print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
     random_indices = np.random.choice(
         all_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=False
     )
