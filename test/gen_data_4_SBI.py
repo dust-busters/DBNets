@@ -43,7 +43,7 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         y_pred = model(smoothed_x, res=sigma, training=training, no_smooth=True, mcdropout=mcdropout)
         new_results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 6)
         if i==0:
-            results = new_results
+            results = new_results.copy()
         else:
             for key in results.keys():
                 results[key] = np.concatenate([results[key], new_results[key]], axis=0)
