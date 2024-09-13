@@ -203,7 +203,7 @@ elif params['method']=='method2':
         testing_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=True
     )
     features = testing_data[f"y_pred"][
-        np.arange(n_sim)[:, None], random_indices, :
+        np.arange(n_sim)[::30, None], random_indices, :
     ].reshape(n_sim, -1)
     if params["concat_res"]:
         features = np.concatenate([features, testing_data["sigma"].reshape(-1, 1)], axis=1)
