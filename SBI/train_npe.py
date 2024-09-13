@@ -66,7 +66,7 @@ for fold, test_d in enumerate(params["test_data"]):
             #some logging
             logger.debug(f"all_data info after concatenate:")
             for k in all_data.keys():
-                logger.debug(f'data[{k}]: {data["k"].shape}')
+                logger.debug(f'data[{k}]: {data[k].shape}')
                 
         else:
             # load targets
