@@ -19,7 +19,7 @@ from numpy import float32
 import yaml
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='lastlog.log', encoding='utf-8', level=logging.DEBUG)
 
 
 def concat_dict(a, b):
@@ -45,89 +45,90 @@ if not os.path.exists(out_folder):
 print(f"Saving folder: {out_folder}")
 os.system(f"cp params.py {out_folder}/params.npy")
 
-#loading data for training NPE models
-logger.info(f"Loading data for training NPE, except for folder {params['test_fold']}")
-all_data = None
-for fold, test_d in enumerate(params["test_data"]):
-    if fold + 1 != params["test_fold"]:
-        with open(test_d, "rb") as file:
-            data = pickle.load(file)
-            
-        #some logging
-        logger.debug(f"Opened {test_d}, data info:")
-        for k in data.keys():
-            logger.debug(f'data[{k}]: {data[k].shape}')
-            
-        if params["method"] == "method2":
-            data["targets"] = data["y"]
-            all_data = concat_dict(all_data, data)
-            print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
-            
+if not params['only_test']:
+    #loading data for training NPE models
+    logger.info(f"Loading data for training NPE, except for folder {params['test_fold']}")
+    all_data = None
+    for fold, test_d in enumerate(params["test_data"]):
+        if fold + 1 != params["test_fold"]:
+            with open(test_d, "rb") as file:
+                data = pickle.load(file)
+                
             #some logging
-            logger.debug(f"all_data info after concatenate:")
-            for k in all_data.keys():
+            logger.debug(f"Opened {test_d}, data info:")
+            for k in data.keys():
                 logger.debug(f'data[{k}]: {data[k].shape}')
                 
-        else:
-            # load targets
-            data_t = {}
-            for t in params["times"]:
-                data_t[f"time{t}"] = np.load(
-                    f'../training/{params["data_path"]}/{t}/data.npy', allow_pickle=True
-                ).item()
-            target_test = np.concatenate(
-                [data_t[f"time{t}"][f"targ_test{fold+1}"] for t in params["times"]],
-                axis=0,
-            )
-            data["targets"] = target_test[:-1]
-            all_data = concat_dict(all_data, data)
-            del data_t
+            if params["method"] == "method2":
+                data["targets"] = data["y"]
+                all_data = concat_dict(all_data, data)
+                print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
+                
+                #some logging
+                logger.debug(f"all_data info after concatenate:")
+                for k in all_data.keys():
+                    logger.debug(f'data[{k}]: {data[k].shape}')
+                    
+            else:
+                # load targets
+                data_t = {}
+                for t in params["times"]:
+                    data_t[f"time{t}"] = np.load(
+                        f'../training/{params["data_path"]}/{t}/data.npy', allow_pickle=True
+                    ).item()
+                target_test = np.concatenate(
+                    [data_t[f"time{t}"][f"targ_test{fold+1}"] for t in params["times"]],
+                    axis=0,
+                )
+                data["targets"] = target_test[:-1]
+                all_data = concat_dict(all_data, data)
+                del data_t
 
-# now all_data contains the test data to be used for training the maf NPE
+    # now all_data contains the test data to be used for training the maf NPE
 
 
-# preparing data for traininf MAF. COncatenating different resolutions.
-if params["method"] == "method1":
-    n_sim = all_data["y_pred_r0.0"].shape[0]
-    x = torch.tensor(
-        np.concatenate(
-            [
-                all_data[f"y_pred_r{res}"].reshape(n_sim, -1)
-                for res in params["training_resolutions"]
-            ]
-        ),
-        dtype=torch.float32,
-    )
-    theta = torch.tensor(
-        np.concatenate([all_data["targets"] for res in params["training_resolutions"]]),
-        dtype=torch.float32,
-    )
-elif params["method"] == "method2":
-    n_sim = all_data["y_pred"].shape[0]
-    print(all_data['y_pred'].shape)
-    print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
-    random_indices = np.random.choice(
-        all_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=True
-    )
-    features = all_data[f"y_pred"][
-        np.arange(n_sim)[:, None], random_indices, :
-    ].reshape(n_sim, -1)
-    if params["concat_res"]:
-        features = np.concatenate([features, all_data["sigma"].reshape(-1, 1)], axis=1)
-    x = torch.tensor(
-        features,
-        dtype=torch.float32,
-    )
-    theta = torch.tensor(
-        all_data["targets"],
-        dtype=torch.float32,
-    )
+    # preparing data for traininf MAF. COncatenating different resolutions.
+    if params["method"] == "method1":
+        n_sim = all_data["y_pred_r0.0"].shape[0]
+        x = torch.tensor(
+            np.concatenate(
+                [
+                    all_data[f"y_pred_r{res}"].reshape(n_sim, -1)
+                    for res in params["training_resolutions"]
+                ]
+            ),
+            dtype=torch.float32,
+        )
+        theta = torch.tensor(
+            np.concatenate([all_data["targets"] for res in params["training_resolutions"]]),
+            dtype=torch.float32,
+        )
+    elif params["method"] == "method2":
+        n_sim = all_data["y_pred"].shape[0]
+        print(all_data['y_pred'].shape)
+        print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
+        random_indices = np.random.choice(
+            all_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=True
+        )
+        features = all_data[f"y_pred"][
+            np.arange(n_sim)[:, None], random_indices, :
+        ].reshape(n_sim, -1)
+        if params["concat_res"]:
+            features = np.concatenate([features, all_data["sigma"].reshape(-1, 1)], axis=1)
+        x = torch.tensor(
+            features,
+            dtype=torch.float32,
+        )
+        theta = torch.tensor(
+            all_data["targets"],
+            dtype=torch.float32,
+        )
 
-# training
-# preparing NPE
+    # training
+    # preparing NPE
 
-print("Data loaded. Starting training of the NPE.")
-with wandb.init(project="dbnets2.0.0_SBI", config=params):
+    print("Data loaded. Starting training of the NPE.")
+    wandbrun =  wandb.init(project="dbnets2.0.0_SBI", config=params)
     prior = utils.BoxUniform(
         low=torch.tensor([-1, -1, -1, -1, -1, -1]),
         high=torch.tensor([1, 1, 1, 1, 1, 1]),
@@ -145,122 +146,129 @@ with wandb.init(project="dbnets2.0.0_SBI", config=params):
 
     with open(f"{out_folder}/posterior.pkl", "wb") as f:
         pickle.dump(posterior, f)
+            
+if params['load_posterior'] is not None:
+    with open(params['load_posterior'], "rb") as f:
+        posterior = pickle.load(f)
+    if params['only_test']:
+        wandbrun =  wandb.init(project="dbnets2.0.0_SBI", config=params)
 
-    # run tests, compute metrics and generate plots
 
-    # loading testing data -> I am using one of the 5 folds
-    testing_data = None
+# run tests, compute metrics and generate plots
 
-    with open(params["test_data"][params["test_fold"] - 1], "rb") as file:
-        testing_data = pickle.load(file)
+# loading testing data -> I am using one of the 5 folds
+testing_data = None
 
-    if params['method']=='method1':
-        # load targets
-        data_t = {}
-        for t in params["times"]:
-            data_t[f"time{t}"] = np.load(
-                f'../training/{params["data_path"]}/{t}/data.npy', allow_pickle=True
-            ).item()
-        target_test = np.concatenate(
+with open(params["test_data"][params["test_fold"] - 1], "rb") as file:
+    testing_data = pickle.load(file)
+
+if params['method']=='method1':
+    # load targets
+    data_t = {}
+    for t in params["times"]:
+        data_t[f"time{t}"] = np.load(
+            f'../training/{params["data_path"]}/{t}/data.npy', allow_pickle=True
+        ).item()
+    target_test = np.concatenate(
+        [
+            data_t[f"time{t}"][f"targ_test{params['test_fold']}"]
+            for t in params["times"]
+        ],
+        axis=0,
+    )
+    testing_data["targets"] = target_test[:-1]
+    del data_t
+
+    # converting to torch tensors
+    n_sim = testing_data["y_pred_r0.0"].shape[0]
+    x = torch.tensor(
+        np.concatenate(
             [
-                data_t[f"time{t}"][f"targ_test{params['test_fold']}"]
-                for t in params["times"]
-            ],
-            axis=0,
-        )
-        testing_data["targets"] = target_test[:-1]
-        del data_t
-
-        # converting to torch tensors
-        n_sim = testing_data["y_pred_r0.0"].shape[0]
-        x = torch.tensor(
-            np.concatenate(
-                [
-                    testing_data[f"y_pred_r{res}"].reshape(n_sim, -1)
-                    for res in params["testing_resolutions"]
-                ]
-            ),
-            dtype=torch.float32,
-        )
-        theta = torch.tensor(
-            np.concatenate(
-                [testing_data["targets"] for res in params["testing_resolutions"]]
-            ),
-            dtype=torch.float32,
-        )
-    elif params['method']=='method2':
-        n_sim = testing_data["y_pred"].shape[0]
-        print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
-        random_indices = np.random.choice(
-            testing_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=False
-        )
-        features = testing_data[f"y_pred"][
-            np.arange(n_sim)[:, None], random_indices, :
-        ].reshape(n_sim, -1)
-        if params["concat_res"]:
-            features = np.concatenate([features, testing_data["sigma"].reshape(-1, 1)], axis=1)
-        x = torch.tensor(
-            features,
-            dtype=torch.float32,
-        )
-        theta = torch.tensor(
-            testing_data["y"],
-            dtype=torch.float32,
-        )
-
-    # run sbc
-    from sbi.diagnostics import run_sbc
-
-    print(x.shape)
-    print(theta.shape)
-    ranks, dap_samples = run_sbc(
-        theta,
-        x,
-        posterior,
-        num_posterior_samples=params["num_posterior_samples"],
-        num_workers=12,
+                testing_data[f"y_pred_r{res}"].reshape(n_sim, -1)
+                for res in params["testing_resolutions"]
+            ]
+        ),
+        dtype=torch.float32,
+    )
+    theta = torch.tensor(
+        np.concatenate(
+            [testing_data["targets"] for res in params["testing_resolutions"]]
+        ),
+        dtype=torch.float32,
+    )
+elif params['method']=='method2':
+    n_sim = testing_data["y_pred"].shape[0]
+    print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
+    random_indices = np.random.choice(
+        testing_data["y_pred"].shape[1], size=(n_sim, params["npe_features"]), replace=False
+    )
+    features = testing_data[f"y_pred"][
+        np.arange(n_sim)[:, None], random_indices, :
+    ].reshape(n_sim, -1)
+    if params["concat_res"]:
+        features = np.concatenate([features, testing_data["sigma"].reshape(-1, 1)], axis=1)
+    x = torch.tensor(
+        features,
+        dtype=torch.float32,
+    )
+    theta = torch.tensor(
+        testing_data["y"],
+        dtype=torch.float32,
     )
 
-    # run checks on sbc results
-    from sbi.diagnostics import check_sbc
+# run sbc
+from sbi.diagnostics import run_sbc
 
-    check_stats = check_sbc(
-        ranks, theta, dap_samples, num_posterior_samples=params["num_posterior_samples"]
-    )
-    wandb.log(check_stats)
+print(x.shape)
+print(theta.shape)
+ranks, dap_samples = run_sbc(
+    theta,
+    x,
+    posterior,
+    num_posterior_samples=params["num_posterior_samples"],
+    num_workers=12,
+)
 
-    from sbi.analysis.plot import sbc_rank_plot
+# run checks on sbc results
+from sbi.diagnostics import check_sbc
 
-    f, ax = sbc_rank_plot(
-        ranks=ranks,
-        num_posterior_samples=params["num_posterior_samples"],
-        plot_type="hist",
-        num_bins=None,  # by passing None we use a heuristic for the number of bins.
-    )
-    wandb.log({"sbc_hist": wandb.Image(f)})
+check_stats = check_sbc(
+    ranks, theta, dap_samples, num_posterior_samples=params["num_posterior_samples"]
+)
+wandb.log(check_stats)
 
-    f, ax = sbc_rank_plot(
-        ranks, num_posterior_samples=params["num_posterior_samples"], plot_type="cdf"
-    )
-    wandb.log({"sbc_cdf": wandb.Image(f)})
+from sbi.analysis.plot import sbc_rank_plot
 
-    # run tarp check
-    from sbi.diagnostics import run_tarp
-    from sbi.diagnostics import check_tarp
+f, ax = sbc_rank_plot(
+    ranks=ranks,
+    num_posterior_samples=params["num_posterior_samples"],
+    plot_type="hist",
+    num_bins=None,  # by passing None we use a heuristic for the number of bins.
+)
+wandb.log({"sbc_hist": wandb.Image(f)})
 
-    ecp, alpha = run_tarp(
-        theta,
-        x,
-        posterior,
-        references=None,  # will be calculated automatically.
-        num_posterior_samples=params["num_posterior_samples"],
-    )
-    atc, ks_pval = check_tarp(ecp, alpha)
-    wandb.log({"tarp_atc": atc, "tarp_ks_pval": ks_pval})
+f, ax = sbc_rank_plot(
+    ranks, num_posterior_samples=params["num_posterior_samples"], plot_type="cdf"
+)
+wandb.log({"sbc_cdf": wandb.Image(f)})
 
-    from sbi.analysis.plot import plot_tarp
+# run tarp check
+from sbi.diagnostics import run_tarp
+from sbi.diagnostics import check_tarp
 
-    plot_tarp(ecp, alpha)
-    wandb.log({"tarp_plot": wandb.Image(plt.gcf())})
+ecp, alpha = run_tarp(
+    theta,
+    x,
+    posterior,
+    references=None,  # will be calculated automatically.
+    num_posterior_samples=params["num_posterior_samples"],
+)
+atc, ks_pval = check_tarp(ecp, alpha)
+wandb.log({"tarp_atc": atc, "tarp_ks_pval": ks_pval})
 
-    # run validation
+from sbi.analysis.plot import plot_tarp
+
+plot_tarp(ecp, alpha)
+wandb.log({"tarp_plot": wandb.Image(plt.gcf())})
+
+# run validation
