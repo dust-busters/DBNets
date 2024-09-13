@@ -56,7 +56,7 @@ for fold, test_d in enumerate(params["test_data"]):
         #some logging
         logger.debug(f"Opened {test_d}, data info:")
         for k in data.keys():
-            logger.debug(f'data[{k}]: {data["k"].shape}')
+            logger.debug(f'data[{k}]: {data[k].shape}')
             
         if params["method"] == "method2":
             data["targets"] = data["y"]
@@ -65,7 +65,7 @@ for fold, test_d in enumerate(params["test_data"]):
             
             #some logging
             logger.debug(f"all_data info after concatenate:")
-            for k in data.keys():
+            for k in all_data.keys():
                 logger.debug(f'data[{k}]: {data["k"].shape}')
                 
         else:
