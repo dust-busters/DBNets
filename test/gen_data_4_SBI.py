@@ -97,6 +97,12 @@ parser.add_argument(
     type=int
 )
 parser.add_argument(
+    "--dropout-rate",
+    help="dropout rate for mc-dropout",
+    default=0.2,
+    type=float
+)
+parser.add_argument(
     '--norm',
     '-n',
     type=str,
@@ -122,6 +128,7 @@ loaded_model = keras.saving.load_model(
     custom_objects=custom_objs,
 )
 
+loaded_model.dropout_rate = args.dropout_rate
 #create augmentor
 augmentor = augmentator()
 
