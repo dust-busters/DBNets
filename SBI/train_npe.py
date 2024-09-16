@@ -140,11 +140,12 @@ if not params['only_test']:
         stop_after_epochs=params["min_train_epochs"],
         learning_rate=params["learning_rate"],
         show_train_summary=True,
+        force_first_round_loss=True,
         validation_fraction=0.1,
     )
     posterior = inference.build_posterior()
 
-    with open(f"{out_folder}/posterior.pkl", "wb") as f:
+    with open(f"{out_folder}/posterior.{params['test_fold']}.pkl", "wb") as f:
         pickle.dump(posterior, f)
             
 if params['load_posterior'] is not None:
