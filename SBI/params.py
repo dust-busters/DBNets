@@ -5,8 +5,12 @@ params = {
     for fold in range(1, 5)
 ],
 'testing_resolutions': [0.0, 0.05, 0.1, 0.15],
-'times': [1500],
+'only_test': False,
+'load_posterior': None,
+'times': [500,1000,1500],
 'density_estimator': 'maf',
+'npe_features': 500,
+'learning_rate': 1e-4,
 'hidden_features': 50, #both for maf and nsf, default=50
 'n_transforms': 5, #both for maf and nsf, default=5
 'n_bins': 10, #only meaningful if using nsf, dafault=10 
