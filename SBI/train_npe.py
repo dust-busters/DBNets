@@ -229,7 +229,7 @@ coll_samples = np.array([])
 for i in range(x.shape[0]):
     samples = posterior.set_default_x(x[i]).sample((params['num_posterior_samples'],)).numpy()
     if i == 0:
-        coll_sampels = samples.copy()
+        coll_sampels = samples.reshape(1, *samples.shape).copy()
     else:
         coll_samples = np.concatenate([coll_samples, samples.reshape(1, *samples.shape)])
 
