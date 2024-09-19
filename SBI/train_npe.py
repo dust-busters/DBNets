@@ -238,7 +238,7 @@ medians = np.median(coll_samples, axis=1, keepdims=True)
 mses = (coll_samples-medians).mean(axis=(0,1), keepdims=False)
 stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
 for i in range(6):
-    wandb.log(f'mse_{__LABELS__[i]}': mses[i], f'std_{__LABELS__[i]}': stds[i])
+    wandb.log({f'mse_{__LABELS__[i]}': mses[i], f'std_{__LABELS__[i]}': stds[i]})
 
 #compute standard deviations for each dimension
 
@@ -311,9 +311,9 @@ for i, ax in enumerate(axs):
     if i >2:
         ax.set_xlabel('Credibility Level')
     atc, ks_pval = check_tarp(ecp, alpha)
-    wandb.log(f'tarp_atc_{__LABELS__[i]}': atc, f'tarp_ks_pval_{__LABELS__[i]}': ks_pval)
+    wandb.log({f'tarp_atc_{__LABELS__[i]}': atc, f'tarp_ks_pval_{__LABELS__[i]}': ks_pval})
 axs[0].legend(title='Testing\nresolution', loc='upper left')
-wandb.log(f'sing_tarp', wandb.Image(fig))
+wandb.log({f'sing_tarp', wandb.Image(fig)})
 
 
 # run validation
