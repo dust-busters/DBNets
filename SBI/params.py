@@ -7,6 +7,9 @@ params = {
 'testing_resolutions': [0.0, 0.05, 0.1, 0.15],
 'times': [1500],
 'density_estimator': 'maf',
+'hidden_features': 50, #both for maf and nsf, default=50
+'n_transforms': 5, #both for maf and nsf, default=5
+'n_bins': 10, #only meaningful if using nsf, dafault=10 
 'training_resolutions': [0.0, 0.05, 0.1, 0.15],
 'train_batch_size': 16,
 'min_train_epochs': 50,

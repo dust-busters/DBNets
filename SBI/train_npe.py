@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+import tarp
 import wandb
 import logging
 
@@ -15,6 +16,7 @@ from ctypes import util
 from sbi.inference import NPE
 from sbi import utils
 import torch
+from sbi.neural_nets import posterior_nn
 from numpy import float32
 import yaml
 
@@ -133,9 +135,10 @@ if not params['only_test']:
         low=torch.tensor([-1, -1, -1, -1, -1, -1]),
         high=torch.tensor([1, 1, 1, 1, 1, 1]),
     )
-    inference = NPE(prior, density_estimator="maf")
-    _ = inference.append_simulations(theta, x, proposal=prior)
-    inference.train(
+    density_estimator_funct = posterior_nn(model=params['density_estimator'], hidden_features=params['hidden_features'], num_transforms=params['n_transforms'], num_bins=params['n_bins'])
+    inference = NPE(prior=None, density_estimator=density_estimator_funct)
+    _ = inference.append_simulations(theta, x, proposal=None)
+    post = inference.train(
         training_batch_size=params["train_batch_size"],
         stop_after_epochs=params["min_train_epochs"],
         learning_rate=params["learning_rate"],
@@ -221,6 +224,24 @@ elif params['method']=='method2':
         dtype=torch.float32,
     )
 
+#extract samples and test accuracy
+coll_samples = np.array([])
+for i in range(x.shape[0]):
+    samples = posterior.set_default_x(x[i]).sample((params['num_posterior_samples'],)).numpy()
+    if i == 0:
+        coll_sampels = samples.copy()
+    else:
+        coll_samples = np.concatenate([coll_samples, samples.reshape(1, *samples.shape)])
+
+#compute mse of medians 
+medians = np.median(coll_samples, axis=1, keepdims=True)
+mses = (coll_samples-medians).mean(axis=(0,1), keepdims=False)
+stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
+for i in range(6):
+    wandb.log(f'mse_{__LABELS__[i]}': mses[i], f'std_{__LABELS__[i]}': stds[i])
+
+#compute standard deviations for each dimension
+
 # run sbc
 from sbi.diagnostics import run_sbc
 
@@ -257,7 +278,7 @@ f, ax = sbc_rank_plot(
 )
 wandb.log({"sbc_cdf": wandb.Image(f)})
 
-# run tarp check
+# run tarp checks
 from sbi.diagnostics import run_tarp
 from sbi.diagnostics import check_tarp
 
@@ -275,5 +296,24 @@ from sbi.analysis.plot import plot_tarp
 
 plot_tarp(ecp, alpha)
 wandb.log({"tarp_plot": wandb.Image(plt.gcf())})
+
+#run a separate tarp for each parameter
+fig, axs = plt.subplots(2,3, figsize=(12,8), sharex=True, sharey=True)
+axs = axs.flatten()
+for i, ax in enumerate(axs):
+    samples = np.swapaxes(coll_samples, 0, 1)[:,:,i:i+1]
+    ecp, alpha = tarp.get_tarp_coverage(samples, theta[:-1,i:i+1].numpy())
+    ax.plot(alpha, ecp)
+    ax.set_title(__LABELS__[i])
+    ax.plot([0,1], [0,1], '--', color='gray')
+    if i%3==0:
+        ax.set_ylabel('Coverage')
+    if i >2:
+        ax.set_xlabel('Credibility Level')
+    atc, ks_pval = check_tarp(ecp, alpha)
+    wandb.log(f'tarp_atc_{__LABELS__[i]}': atc, f'tarp_ks_pval_{__LABELS__[i]}': ks_pval)
+axs[0].legend(title='Testing\nresolution', loc='upper left')
+wandb.log(f'sing_tarp', wandb.Image(fig))
+
 
 # run validation
