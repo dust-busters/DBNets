@@ -136,7 +136,8 @@ if not params['only_test']:
         high=torch.tensor([1, 1, 1, 1, 1, 1]),
     )
     density_estimator_funct = posterior_nn(model=params['density_estimator'], hidden_features=params['hidden_features'], num_transforms=params['n_transforms'], num_bins=params['n_bins'])
-    inference = NPE(prior=None, density_estimator=density_estimator_funct)
+    inference = NPE(prior=None, density_estimator=density_estimator_funct,device='cuda')
+    
     _ = inference.append_simulations(theta, x, proposal=None)
     post = inference.train(
         training_batch_size=params["train_batch_size"],
@@ -144,7 +145,7 @@ if not params['only_test']:
         learning_rate=params["learning_rate"],
         show_train_summary=True,
         force_first_round_loss=True,
-        validation_fraction=0.1,
+        validation_fraction=0.1
     )
     posterior = inference.build_posterior()
 
@@ -229,9 +230,9 @@ coll_samples = np.array([])
 for i in range(x.shape[0]):
     samples = posterior.set_default_x(x[i]).sample((params['num_posterior_samples'],)).numpy()
     if i == 0:
-        coll_sampels = samples.copy().reshape(1, *samples.shape)
+        coll_samples = samples.copy().reshape(1, *samples.shape)
     else:
-        coll_samples = np.concatenate([coll_samples, samples.reshape(1, *samples.shape)])
+        coll_samples = np.concatenate([coll_samples, samples.copy().reshape(1, *samples.shape)])
 
 #compute mse of medians 
 medians = np.median(coll_samples, axis=1, keepdims=True)
