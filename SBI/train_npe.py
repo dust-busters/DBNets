@@ -249,11 +249,12 @@ from sbi.diagnostics import run_sbc
 print(x.shape)
 print(theta.shape)
 ranks, dap_samples = run_sbc(
-    theta,
-    x,
+    theta.cpu(),
+    x.cpu(),
     posterior,
     num_posterior_samples=params["num_posterior_samples"],
     num_workers=12,
+    
 )
 
 # run checks on sbc results
