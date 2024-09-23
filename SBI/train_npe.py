@@ -228,7 +228,7 @@ elif params['method']=='method2':
 #extract samples and test accuracy
 coll_samples = np.array([])
 for i in range(x.shape[0]):
-    samples = posterior.set_default_x(x[i]).sample((params['num_posterior_samples'],)).numpy()
+    samples = posterior.set_default_x(x[i]).sample((params['num_posterior_samples'],)).cpu().numpy()
     if i == 0:
         coll_samples = samples.copy().reshape(1, *samples.shape)
     else:
