@@ -306,7 +306,7 @@ fig, axs = plt.subplots(2,3, figsize=(12,8), sharex=True, sharey=True)
 axs = axs.flatten()
 for i, ax in enumerate(axs):
     samples = np.swapaxes(coll_samples, 0, 1)[:,:,i:i+1]
-    ecp, alpha = tarp.get_tarp_coverage(samples, theta[:-1,i:i+1].numpy())
+    ecp, alpha = tarp.get_tarp_coverage(samples, theta[:,i:i+1].numpy())
     ax.plot(alpha, ecp)
     ax.set_title(__LABELS__[i])
     ax.plot([0,1], [0,1], '--', color='gray')
