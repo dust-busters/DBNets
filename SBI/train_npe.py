@@ -136,7 +136,7 @@ if not params['only_test']:
         high=torch.tensor([1, 1, 1, 1, 1, 1]),
     )
     density_estimator_funct = posterior_nn(model=params['density_estimator'], hidden_features=params['hidden_features'], num_transforms=params['n_transforms'], num_bins=params['n_bins'])
-    inference = NPE(prior=None, density_estimator=density_estimator_funct,device='cuda')
+    inference = NPE(prior=None, density_estimator=density_estimator_funct,device=params['device'])
     
     _ = inference.append_simulations(theta, x, proposal=None)
     post = inference.train(
@@ -219,12 +219,12 @@ elif params['method']=='method2':
     x = torch.tensor(
         features,
         dtype=torch.float32,
-        device='cuda'
+        device=params['device']
     )
     theta = torch.tensor(
         testing_data["y"],
         dtype=torch.float32,
-        device='cuda'
+        device=params['device']
     )
 
 #extract samples and test accuracy
