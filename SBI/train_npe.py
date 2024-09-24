@@ -219,10 +219,12 @@ elif params['method']=='method2':
     x = torch.tensor(
         features,
         dtype=torch.float32,
+        device='cuda'
     )
     theta = torch.tensor(
         testing_data["y"],
         dtype=torch.float32,
+        device='cuda'
     )
 
 #extract samples and test accuracy
@@ -249,8 +251,8 @@ from sbi.diagnostics import run_sbc
 print(x.shape)
 print(theta.shape)
 ranks, dap_samples = run_sbc(
-    theta.cpu(),
-    x.cpu(),
+    theta,
+    x,
     posterior,
     num_posterior_samples=params["num_posterior_samples"],
     num_workers=12,
