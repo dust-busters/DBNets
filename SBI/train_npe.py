@@ -238,7 +238,7 @@ for i in range(x.shape[0]):
 
 #compute mse of medians 
 medians = np.median(coll_samples, axis=1, keepdims=True)
-mses = (coll_samples-medians).mean(axis=(0,1), keepdims=False)
+mses = ((coll_samples-medians)**2).mean(axis=(0,1), keepdims=False)
 stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
 for i in range(6):
     wandb.log({f'mse_{__LABELS__[i]}': mses[i], f'std_{__LABELS__[i]}': stds[i]})
