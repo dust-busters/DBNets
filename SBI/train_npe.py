@@ -317,7 +317,7 @@ for i, ax in enumerate(axs):
     atc, ks_pval = check_tarp(torch.tensor(ecp), torch.tensor(alpha))
     wandb.log({f'tarp_atc_{__LABELS__[i]}': atc, f'tarp_ks_pval_{__LABELS__[i]}': ks_pval})
 axs[0].legend(title='Testing\nresolution', loc='upper left')
-wandb.log({f'sing_tarp', wandb.Image(fig)})
+wandb.log({f'sing_tarp': wandb.Image(fig)})
 
 
 # run validation
