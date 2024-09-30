@@ -322,7 +322,7 @@ def train_sbi(params=global_params, sweep=True):
     wandb.log({f'sing_tarp': wandb.Image(fig)})
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
     project_name='dbnets2.0.0_SBI'
     
     parser = argparse.ArgumentParser(
