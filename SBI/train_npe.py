@@ -312,7 +312,7 @@ for i, ax in enumerate(axs[:len(params['inf_para'])]):
     if i >2:
         ax.set_xlabel('Credibility Level')
     atc, ks_pval = check_tarp(torch.tensor(ecp), torch.tensor(alpha))
-    wandb.log({f'tarp_atc_{__LABELS__[params['inf_para'][i]]}': atc, f'tarp_ks_pval_{__LABELS__[params['inf_para'][i]]}': ks_pval})
+    wandb.log({f"tarp_atc_{__LABELS__[params['inf_para'][i]]}": atc, f"tarp_ks_pval_{__LABELS__[params['inf_para'][i]]}": ks_pval})
 axs[0].legend(title='Testing\nresolution', loc='upper left')
 wandb.log({f'sing_tarp': wandb.Image(fig)})
 
