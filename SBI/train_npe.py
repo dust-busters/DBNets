@@ -335,9 +335,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.sweep is not None:
-        print(f"Launching sweep agents performing {args.n_sweep_agents} iterations...")
+        print(f"Launching sweep agents performing {1} iterations...")
         print(f"Sweep id: {args.sweep}")
-        wandb.agent(args.sweep, train_sbi, count=args.n_sweep_agents, project=project_name)
+        wandb.agent(args.sweep, train_sbi, count=1, project=project_name)
     else:
         from params import params
         print("Starting training using parameters in configs.py...")
