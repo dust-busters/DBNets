@@ -1,3 +1,11 @@
+import numpy as np
+
+ALPHA=0
+ASPECT_RATIO=1
+INVSTOKES=2
+PLANET_MASS = 4
+
+
 params = {
 'run_name': "",
 'test_data': [
@@ -5,6 +13,7 @@ params = {
     for fold in range(1, 5)
 ],
 'testing_resolutions': [0.0, 0.05, 0.1, 0.15],
+'inf_para': np.array([ALPHA, ASPECT_RATIO, INVSTOKES, PLANET_MASS]),
 'only_test': False,
 'load_posterior': None,
 'times': [500,1000,1500],

@@ -62,7 +62,7 @@ if not params['only_test']:
                 logger.debug(f'data[{k}]: {data[k].shape}')
                 
             if params["method"] == "method2":
-                data["targets"] = data["y"]
+                data["targets"] = data["y"][:,params["inf_para"]]
                 all_data = concat_dict(all_data, data)
                 print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
                 
@@ -82,7 +82,7 @@ if not params['only_test']:
                     [data_t[f"time{t}"][f"targ_test{fold+1}"] for t in params["times"]],
                     axis=0,
                 )
-                data["targets"] = target_test[:-1]
+                data["targets"] = target_test[:-1][:,params["inf_para"]]
                 all_data = concat_dict(all_data, data)
                 del data_t
 
@@ -131,10 +131,7 @@ if not params['only_test']:
 
     print("Data loaded. Starting training of the NPE.")
     wandbrun =  wandb.init(project="dbnets2.0.0_SBI", config=params)
-    prior = utils.BoxUniform(
-        low=torch.tensor([-1, -1, -1, -1, -1, -1]),
-        high=torch.tensor([1, 1, 1, 1, 1, 1]),
-    )
+    prior = None
     density_estimator_funct = posterior_nn(model=params['density_estimator'], hidden_features=params['hidden_features'], num_transforms=params['n_transforms'], num_bins=params['n_bins'])
     inference = NPE(prior=None, density_estimator=density_estimator_funct,device=params['device'])
     
@@ -240,8 +237,8 @@ for i in range(x.shape[0]):
 medians = np.median(coll_samples, axis=1, keepdims=True)
 mses = ((coll_samples-medians)**2).mean(axis=(0,1), keepdims=False)
 stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
-for i in range(6):
-    wandb.log({f'mse_{__LABELS__[i]}': mses[i], f'std_{__LABELS__[i]}': stds[i]})
+for j,i in enumerate(params['inf_para']):
+    wandb.log({f'mse_{__LABELS__[i]}': mses[j], f'std_{__LABELS__[i]}': stds[j]})
 
 #compute standard deviations for each dimension
 
@@ -304,18 +301,18 @@ wandb.log({"tarp_plot": wandb.Image(plt.gcf())})
 #run a separate tarp for each parameter
 fig, axs = plt.subplots(2,3, figsize=(12,8), sharex=True, sharey=True)
 axs = axs.flatten()
-for i, ax in enumerate(axs):
+for i, ax in enumerate(axs[:len(params['inf_para'])]):
     samples = np.swapaxes(coll_samples, 0, 1)[:,:,i:i+1]
     ecp, alpha = tarp.get_tarp_coverage(samples, theta[:,i:i+1].numpy())
     ax.plot(alpha, ecp)
-    ax.set_title(__LABELS__[i])
+    ax.set_title(__LABELS__[params['inf_para'][i]])
     ax.plot([0,1], [0,1], '--', color='gray')
     if i%3==0:
         ax.set_ylabel('Coverage')
     if i >2:
         ax.set_xlabel('Credibility Level')
     atc, ks_pval = check_tarp(torch.tensor(ecp), torch.tensor(alpha))
-    wandb.log({f'tarp_atc_{__LABELS__[i]}': atc, f'tarp_ks_pval_{__LABELS__[i]}': ks_pval})
+    wandb.log({f'tarp_atc_{__LABELS__[params['inf_para'][i]]}': atc, f'tarp_ks_pval_{__LABELS__[params['inf_para'][i]]}': ks_pval})
 axs[0].legend(title='Testing\nresolution', loc='upper left')
 wandb.log({f'sing_tarp': wandb.Image(fig)})
 
