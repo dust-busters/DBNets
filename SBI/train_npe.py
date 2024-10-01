@@ -51,6 +51,11 @@ def train_sbi(params=global_params, sweep=True):
     os.system(f"cp params.py {out_folder}/params.npy")
 
     if not params['only_test']:
+        
+        wandbrun =  wandb.init(project="dbnets2.0.0_SBI", config=params)
+        if sweep:
+            wandb.config.update(params)
+            params = wandb.config
         #loading data for training NPE models
         logger.info(f"Loading data for training NPE, except for folder {params['test_fold']}")
         all_data = None
@@ -133,10 +138,6 @@ def train_sbi(params=global_params, sweep=True):
         # preparing NPE
 
         print("Data loaded. Starting training of the NPE.")
-        wandbrun =  wandb.init(project="dbnets2.0.0_SBI", config=params)
-        if sweep:
-            wandb.config.update(params)
-            params = wandb.config
         prior = None
         density_estimator_funct = posterior_nn(model=params['density_estimator'], hidden_features=params['hidden_features'], num_transforms=params['n_transforms'], num_bins=params['n_bins'])
         inference = NPE(prior=None, density_estimator=density_estimator_funct,device=params['device'])
