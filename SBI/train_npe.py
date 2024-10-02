@@ -243,7 +243,7 @@ def train_sbi(params=global_params, sweep=True):
 
     #compute mse of medians 
     medians = np.median(coll_samples, axis=1, keepdims=True)
-    mses = ((theta[:,0,:]-medians)**2).mean(axis=(0,1), keepdims=False)
+    mses = ((theta-medians[:,0,:])**2).mean(axis=(0,1), keepdims=False)
     stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
     for j,i in enumerate(params['inf_para']):
         wandb.log({f'mse_{__LABELS__[i]}': mses[j], f'std_{__LABELS__[i]}': stds[j]})
