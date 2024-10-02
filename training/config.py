@@ -35,13 +35,14 @@ configs = [
 'lr': 1e-4,
 'activation': 'leaky_relu',
 'smoothing': True,
+'inf_para': [0,1,2,4],
 'model_name': 'venus_multip',
-'dropout': 0.1,
-'maximum_translation_factor': 0.01,
+'dropout': 0.2,
+'maximum_translation_factor': 0.05,
 'noise': 0.1,
 'maximum_augm_resolution': 0.2, #in units of a
-'early_stopping': True,
-'patience': 20,
+'early_stopping': False,
+'patience': 50,
 'batch_size':16,
 'seed': 47656344%(58+1),
 'data_path': 'training_data/only_subs_nosmooth_nonorm/',
@@ -51,6 +52,6 @@ configs = [
 'resume': False,
 'epochs': 1000,
 'res_blocks': [32,64,128],
-'dense_dimensions': [256,256,256,128],
+'dense_dimensions': [256,256,128],
 'norm_input': 'standardize_input_data'
 }]
