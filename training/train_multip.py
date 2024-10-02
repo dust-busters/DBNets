@@ -7,6 +7,7 @@ import os
 import pickle
 import time
 
+from pyro import param
 import wandb.integration
 import argparse
 import wandb.integration.keras
@@ -29,9 +30,9 @@ __LABELS__ = [
     "Alpha",
     "AspectRatio",
     "InvStokes1",
-    "FlaringIndex",
+    #"FlaringIndex",
     "PlanetMass",
-    "SigmaSlope",
+    #"SigmaSlope",
 ]
 
 def reset_wandb_env():
@@ -154,7 +155,7 @@ def train_core(params_g, data):
                 for t in params["times"]
             ],
             axis=0,
-        )
+        )[:, params['inf_para']]
         test_inp = np.concatenate(
             [
                 np.expand_dims(data[f"time{t}"][f"inp_test{fold}"], axis=3)
@@ -164,7 +165,7 @@ def train_core(params_g, data):
         )
         target_test = np.concatenate(
             [data[f"time{t}"][f"targ_test{fold}"] for t in params["times"]], axis=0
-        )
+        )[:, params['inf_para']]
 
         # normalizing input data
         print("Normalizing data")
@@ -181,6 +182,7 @@ def train_core(params_g, data):
             noise=params["noise"],
             maximum_res=params["maximum_augm_resolution"],
             training=True,
+            n_outputs=len(params['inf_para']),
             res_blocks=params['res_blocks'],
             dense_dimensions=params['dense_dimensions']
         )
@@ -202,7 +204,7 @@ def train_core(params_g, data):
             cb = []
 
         # preparing metrics (mse computed on each output)
-        metrics = [models.separate_mse(i) for i in range(6)]
+        metrics = [models.separate_mse(i) for i in range(len(params['inf_para']))]
         metrics = metrics + [models.get_fold_metric(fold)]
 
         # preparing wandb callback
