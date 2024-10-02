@@ -268,7 +268,8 @@ class MultiPModel(keras.Model):
             "training": self.training,
             "testing_resolutions": self.testing_resolutions,
             "dense_dimensions": self.dense_dimensions,
-            "res_blocks": self.n_res_blocks
+            "res_blocks": self.n_res_blocks,
+            "n_outputs": self.n_outputs
         }
         return {**base_config, **config}
 
@@ -284,6 +285,7 @@ class MultiPModel(keras.Model):
         testing_resolutions=[0, 0.05, 0.1, 0.15, 0.2],
         dense_dimensions=[256, 256, 256, 128],
         res_blocks=[32, 64, 128],
+        n_outputs=6,
         **args,
     ):
         super().__init__()
@@ -301,6 +303,7 @@ class MultiPModel(keras.Model):
         self.SMOOTHING_LAYER = 4
         self.act = act
         self.noise = noise
+        self.n_outputs = n_outputs
         self.maximum_translation_factor = maximum_translation_factor
         self.maximum_res = maximum_res
         self.training = training
@@ -314,7 +317,7 @@ class MultiPModel(keras.Model):
         self.dense_res = Dense(256, activation=act, input_shape=(1,))
         self.dense_dimensions = dense_dimensions
         self.dense = [Dense(n, activation=act) for n in dense_dimensions]
-        self.out = Dense(6, activation="tanh", name="o_mean")
+        self.out = Dense(n_outputs, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
 
     def call(self, x, res=None, training=None, no_smooth=False, mcdropout=False):
