@@ -8,6 +8,7 @@ import tarp
 import wandb
 import logging
 import argparse
+import time
 
 sys.path.append("../training")
 from train_multip import __LABELS__
@@ -44,7 +45,7 @@ def train_sbi(params=global_params, sweep=True):
     logger.info('Creating output folder')
     if not os.path.exists("outputs"):
         os.mkdir("outputs")
-    out_folder = f"outputs/{params['run_name']}"
+    out_folder = f"outputs/{params['run_name']}.{time.time()}"
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
     print(f"Saving folder: {out_folder}")
