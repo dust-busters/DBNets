@@ -130,7 +130,7 @@ loaded_model = keras.saving.load_model(
 
 loaded_model.dropout_rate = args.dropout_rate
 #create augmentor
-augmentor = augmentator()
+augmentor = augmentator(maximum_translation_factor=0.01, noise=0.1, maximum_res=0.2)
 
 # load data
 data = {}
