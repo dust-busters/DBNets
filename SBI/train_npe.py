@@ -11,7 +11,6 @@ import argparse
 import time
 
 sys.path.append("../training")
-from train_multip import __LABELS__
 import pickle
 from ctypes import util
 from sbi.inference import NPE
@@ -21,6 +20,15 @@ from sbi.neural_nets import posterior_nn
 from numpy import float32
 import yaml
 from sweep import global_params
+
+__LABELS__ = [
+    "Alpha",
+    "AspectRatio",
+    "InvStokes1",
+    "FlaringIndex",
+    "PlanetMass",
+    "SigmaSlope",
+]
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='lastlog.log', encoding='utf-8', level=logging.DEBUG)
@@ -261,7 +269,6 @@ def train_sbi(params=global_params, sweep=True):
         posterior,
         num_posterior_samples=params["num_posterior_samples"],
         num_workers=12,
-        
     )
 
     # run checks on sbc results
