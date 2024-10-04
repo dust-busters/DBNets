@@ -17,7 +17,7 @@ sys.path.append("../training")
 import models
 from models import augmentator
 from config import norm_functions
-from train_multip import __LABELS__
+__LABELS__ = ['Alpha', 'AspectRatio', 'InvStokes1', 'PlanetMass']
 
 def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
     results = {}
@@ -39,7 +39,7 @@ def test(model, data, augmentor, mcdrop=0, n_augm=10, only_dropout=False):
         training = (mcdrop>1) and (not only_dropout)
         mcdropout = (mcdrop>1) or only_dropout
         y_pred = model(smoothed_x, res=sigma, training=training, no_smooth=True, mcdropout=mcdropout)
-        new_results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 6)
+        new_results[f"y_pred"] = y_pred.numpy().reshape(-1, mcdrop, 4)
         if i==0:
             results = new_results.copy()
         else:
@@ -118,7 +118,7 @@ parser.add_argument('--mc-drop',
 parser.add_argument('--output', '-o', help='output file', type=str)
 args = parser.parse_args()
 
-custom_objs = {f"mse_of_output_{i}": models.separate_mse(i) for i in range(6)}
+custom_objs = {f"mse_of_output_{i}": models.separate_mse(i) for i in range(4)}
 custom_objs['fold_no'] = models.get_fold_metric(args.fold)
 
 # load model
@@ -148,7 +148,7 @@ test_inp = norm_functions[args.norm](test_inp)
 
 target_test = np.concatenate(
     [data[f"time{t}"][args.targ_key] for t in args.times], axis=0
-)
+)[:, [0,1,2,4]]
 
 
 # gen data and concatenate
@@ -158,7 +158,7 @@ print(f'{n_batch} elements augmented {args.n_augm}')
 for i_batch in tqdm(range(n_batch), desc='Iterating over dataset'):
     new_results = test(
         loaded_model,
-        (test_inp[i_batch].reshape(1,128,128,1), target_test[i_batch].reshape(1,6)),
+        (test_inp[i_batch].reshape(1,128,128,1), target_test[i_batch].reshape(1,4)),
         augmentor=augmentor,
         mcdrop=args.mc_drop,
         n_augm=args.n_augm
