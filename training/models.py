@@ -239,10 +239,10 @@ class augmentator(keras.Model):
                 fill_mode="nearest",
             ),
             GaussianNoise(noise),
-            #RandomDiscCut(2,4,100),
+            RandomDiscCut(2,4,100),
             RandomBeamBase(maximum_res),
         ]
-        self.SMOOTHING_LAYER = 3
+        self.SMOOTHING_LAYER = 4
     
     def call(self, x):
         for i, l in enumerate(self.augm_layers):
