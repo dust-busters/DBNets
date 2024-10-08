@@ -239,10 +239,10 @@ class augmentator(keras.Model):
                 fill_mode="nearest",
             ),
             GaussianNoise(noise),
-            RandomDiscCut(2,4,100),
+            #RandomDiscCut(2,4,100),
             RandomBeamBase(maximum_res),
         ]
-        self.SMOOTHING_LAYER = 4
+        self.SMOOTHING_LAYER = 3
     
     def call(self, x):
         for i, l in enumerate(self.augm_layers):
@@ -309,7 +309,7 @@ class MultiPModel(keras.Model):
         self.training = training
         self.testing_resolutions = testing_resolutions
         self.n_res_blocks = res_blocks
-        self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-6)
+        self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-12, scale=False, center=False)
         self.res_blocks = [ResBlock(n, initializer=None) for n in res_blocks]
         self.dropout_rate = dropout
         self.drop = Dropout(dropout)
