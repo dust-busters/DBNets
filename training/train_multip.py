@@ -30,9 +30,9 @@ __LABELS__ = [
     "Alpha",
     "AspectRatio",
     "InvStokes1",
-    #"FlaringIndex",
+    "FlaringIndex",
     "PlanetMass",
-    #"SigmaSlope",
+    "SigmaSlope",
 ]
 
 def reset_wandb_env():
@@ -145,13 +145,7 @@ def train_core(params_g, data):
         )
         target_train = np.concatenate(
             [
-                # this is necessary because labels have been wrongly packed
-                np.concatenate(
-                    [
-                        data[f"time{t}"][f"targ_train{fold}"].reshape(-1, 6)[i::3]
-                        for i in range(3)
-                    ]
-                )
+                    data[f"time{t}"][f"targ_train{fold}"]
                 for t in params["times"]
             ],
             axis=0,
