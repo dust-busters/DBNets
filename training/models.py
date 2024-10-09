@@ -1,6 +1,7 @@
 # imports
 import keras_cv
 from keras.layers import LayerNormalization
+from keras.layers import BatchNormalization
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Dropout
@@ -11,6 +12,7 @@ from keras.layers import Input
 from keras.models import Model
 from keras.layers import Concatenate
 from keras.layers import RandomTranslation
+from keras import regularizers
 from keras.layers import RandomRotation
 from keras.layers import RandomFlip
 from keras.layers import Concatenate
@@ -168,12 +170,21 @@ class RandomDiscCut(keras.layers.Layer):
 
 @keras.saving.register_keras_serializable(package="MyMultiPLayers")
 class ResBlock(keras.Model):
-    def __init__(self, kernel_n, depth=3, initializer=None):
+    def __init__(self, kernel_n, depth=3, initializer=None, regularizer=None):
         super().__init__()
         self.kernel_n = kernel_n
         self.initializer = initializer
+        self.regularizer_rate = regularizer
+        if regularizer is not None:
+            self.regularizer = regularizers.L2(self.regularizer_rate)
+        else:
+            self.regularizer = None
         self.conv1 = Conv2D(
-            kernel_n, (3, 3), padding="same", kernel_initializer=initializer
+            kernel_n, (3, 3),
+            padding="same",
+            kernel_initializer=initializer,
+            kernel_regularizer=self.regularizer,
+            bias_regularizer = self.regularizer
         )
         self.activation1 = LeakyReLU()
         self.activations = []
@@ -188,6 +199,8 @@ class ResBlock(keras.Model):
                     padding="same",
                     name=f"conv_layer_{i}",
                     kernel_initializer=initializer,
+                    kernel_regularizer = self.regularizer,
+                    bias_regularizer = self.regularizer
                 )
             ]
             self.activations += [LeakyReLU()]
@@ -218,6 +231,7 @@ class ResBlock(keras.Model):
             "kernel_n": self.kernel_n,
             "depth": self.depth,
             "initializer": self.initializer,
+            "regularizer": self.regularizer_rate
         }
         return {**base_config, **config}
 
@@ -269,7 +283,9 @@ class MultiPModel(keras.Model):
             "testing_resolutions": self.testing_resolutions,
             "dense_dimensions": self.dense_dimensions,
             "res_blocks": self.n_res_blocks,
-            "n_outputs": self.n_outputs
+            "n_outputs": self.n_outputs,
+            "batch_normalization": self.batch_normalization,
+            "regularizer": self.regularizer_rate
         }
         return {**base_config, **config}
 
@@ -286,6 +302,8 @@ class MultiPModel(keras.Model):
         dense_dimensions=[256, 256, 256, 128],
         res_blocks=[32, 64, 128],
         n_outputs=6,
+        batch_normalization=True,
+        regularizer=None,
         **args,
     ):
         super().__init__()
@@ -304,19 +322,26 @@ class MultiPModel(keras.Model):
         self.act = act
         self.noise = noise
         self.n_outputs = n_outputs
+        self.regularizer_rate = regularizer
+        if regularizer is not None:
+            self.regularizer = regularizers.L2(self.regularizer_rate)
+        else:
+            self.regularizer = None
         self.maximum_translation_factor = maximum_translation_factor
         self.maximum_res = maximum_res
+        self.batch_normalization = batch_normalization
         self.training = training
         self.testing_resolutions = testing_resolutions
         self.n_res_blocks = res_blocks
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-12, scale=False, center=False)
-        self.res_blocks = [ResBlock(n, initializer=None) for n in res_blocks]
+        self.res_blocks = [ResBlock(n, initializer=None, regularizer=regularizer) for n in res_blocks]
+        self.norm_blocks = [BatchNormalization(axis=[1,2,3], epsilon=1e-12) for n in res_blocks]
         self.dropout_rate = dropout
         self.drop = Dropout(dropout)
         self.flatten = Flatten()
         self.dense_res = Dense(256, activation=act, input_shape=(1,))
         self.dense_dimensions = dense_dimensions
-        self.dense = [Dense(n, activation=act) for n in dense_dimensions]
+        self.dense = [Dense(n, activation=act, kernel_regularizer=self.regularizer, bias_regularizer=self.regularizer) for n in dense_dimensions]
         self.out = Dense(n_outputs, activation="tanh", name="o_mean")
         self.concatenate = Concatenate()
 
@@ -336,8 +361,10 @@ class MultiPModel(keras.Model):
         if not no_smooth:
             res = sigma
 
-        for rb in self.res_blocks:
+        for i, rb in enumerate(self.res_blocks):
             x = rb(x)
+            if self.batch_normalization:
+                x = self.norm_blocks[i](x)
 
         resx = self.dense_res(res)
         x = self.flatten(x)

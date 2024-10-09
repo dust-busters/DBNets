@@ -30,9 +30,9 @@ __LABELS__ = [
     "Alpha",
     "AspectRatio",
     "InvStokes1",
-    "FlaringIndex",
+    #"FlaringIndex",
     "PlanetMass",
-    "SigmaSlope",
+    #"SigmaSlope",
 ]
 
 def reset_wandb_env():
@@ -178,7 +178,9 @@ def train_core(params_g, data):
             training=True,
             n_outputs=len(params['inf_para']),
             res_blocks=params['res_blocks'],
-            dense_dimensions=params['dense_dimensions']
+            dense_dimensions=params['dense_dimensions'],
+            regularizer=params['regularizer'],
+            batch_normalization=params['batch_normalization']
         )
 
         # preparing optimizer
