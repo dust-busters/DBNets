@@ -126,7 +126,8 @@ def train_core(params_g, data):
     
     for fold in [1, 2, 3, 4, 5]:
         reset_wandb_env()
-        run =  wandb.init(project=project_name, config=params_g, group=f'{params_g["name"]}.{params_g["time_id"]}', name=f'{params_g["name"]}', reinit=True)
+        params['fold'] = fold
+        run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}', reinit=True)
         # if running a sweep concatenate these parameters with those drawn by the agent
             
         wandb.run.tags = [f"fold_{fold}"]
