@@ -335,7 +335,7 @@ class MultiPModel(keras.Model):
         self.n_res_blocks = res_blocks
         self.norm = LayerNormalization(axis=[1, 2, 3], epsilon=1e-12, scale=False, center=False)
         self.res_blocks = [ResBlock(n, initializer=None, regularizer=regularizer) for n in res_blocks]
-        self.norm_blocks = [BatchNormalization(axis=[1,2,3], epsilon=1e-12) for n in res_blocks]
+        self.norm_blocks = [BatchNormalization(axis=-1, epsilon=1e-12) for n in res_blocks]
         self.dropout_rate = dropout
         self.drop = Dropout(dropout)
         self.flatten = Flatten()
