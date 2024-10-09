@@ -5,12 +5,13 @@ import time
 from config import normalize_input_data, standardize_input_data, log_and_standardize_input_data, log_and_normalize_input_data
 
 global_params = {
-    "name": "archandnorm_bayes_sweep",
+    "name": "bayes_sweep_reg",
     "times": [500, 1000, 1500],
-    "data_path": "training_data/only_subs_nosmooth_nonorm/",
+    "data_path": "training_data/only_subs_nosmooth_nonorm_noroutaugm_c/",
     "saving_folder_g": "trained/",
     "override": True,
     "resume": False,
+    "inf_para": [0,1,2,4]
 }
 
 sweep_config = {
@@ -18,8 +19,8 @@ sweep_config = {
     "metric": {"name": "val_loss", "goal": "minimize"},
     "parameters": {
         "img_pixel_size": {"value": (128, 128)},
-        "lr": {"distribution": "uniform", "min": 5e-6, "max": 1e-4},
-        "activation": {"values": ["leaky_relu", "relu", "elu"]},
+        "lr": {"distribution": "uniform", "min": 5e-5, "max": 5e-3},
+        "activation": {"values": ["leaky_relu", "elu"]},
         "smoothing": {"value": True},
         "dropout": {"distribution": "uniform", "min": 0.1, "max": 0.5},
         "maximum_translation_factor": {
@@ -27,17 +28,19 @@ sweep_config = {
             "min": 0.01,
             "max": 0.05,
         },
-        "noise": {"distribution": "uniform", "min": 0.01, "max": 0.1},
+        "noise": {"value": 0.1},
         "maximum_augm_resolution": {"distribution": "uniform", "min": 0.15, "max": 0.2},
         "early_stopping": {"value": False},
         "patience": {"value": 200},
         "batch_size": {"values": [8, 16, 32, 64, 128]},
         "seed": {"value": 47656344 % (58 + 1)},
         "sweep": {"value": True},
-        "epochs": {"value":500},
-        "dense_dimensions": {"values": [[256,256,256,128], [256,256,128], [256, 128], [256,128,128], [256,128,64]]},
+        "epochs": {"value":3000},
+        "regularizer": {"distribution": "uniform", "min": 1e-4, "max": 1e-1},
+        "batch_normalization": {"values": [True, False]},
+        "dense_dimensions": {"values": [[256,256,256,128], [256,256,128], [256,128,128], [256,128,64]]},
         "res_blocks": {"values": [[32,64,128], [64, 128, 256]]},
-        "norm_input": {"values": ['normalize_input_data', 'standardize_input_data', 'log_and_normalize_input_data', 'log_and_standardize_input_data']}
+        "norm_input": {"value": 'standardize_input_data'}
     },
 }
 
