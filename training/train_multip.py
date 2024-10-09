@@ -108,6 +108,11 @@ def train_core(params_g, data):
 
     #things to log multiple folds
     sweep_run = wandb.init()
+    if params_g["sweep"]:
+        wandb.config.update(params_g)
+        params = wandb.config
+    else:
+        params=params_g
     sweep_id = sweep_run.sweep_id or "unknown"
     sweep_url = sweep_run.get_sweep_url()
     project_url = sweep_run.get_project_url()
@@ -123,11 +128,6 @@ def train_core(params_g, data):
         reset_wandb_env()
         run =  wandb.init(project=project_name, config=params_g, group=f'{params_g["name"]}.{params_g["time_id"]}', name=f'{params_g["name"]}', reinit=True)
         # if running a sweep concatenate these parameters with those drawn by the agent
-        if params_g["sweep"]:
-            wandb.config.update(params_g)
-            params = wandb.config
-        else:
-            params=params_g
             
         wandb.run.tags = [f"fold_{fold}"]
 
