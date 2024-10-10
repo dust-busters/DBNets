@@ -107,12 +107,7 @@ class WandbClfEvalCallback(WandbEvalCallback):
 def train_core(params_g, data):
 
     #things to log multiple folds
-    sweep_run = wandb.init()
-    if params_g["sweep"]:
-        wandb.config.update(params_g)
-        params = wandb.config
-    else:
-        params=params_g
+    '''
     sweep_id = sweep_run.sweep_id or "unknown"
     sweep_url = sweep_run.get_sweep_url()
     project_url = sweep_run.get_project_url()
@@ -123,10 +118,22 @@ def train_core(params_g, data):
     sweep_run_id = sweep_run.id
     sweep_run.finish()
     wandb.sdk.wandb_setup._setup(_reset=True)
-    
-    for fold in [1, 2, 3, 4, 5]:
-        reset_wandb_env()
-        run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}', reinit=True)
+    '''
+    if not params_g['sweep']:
+        folds = [1,2,3,4,5]
+    else:
+        folds = [params_g['fold']]
+        
+    for fold in folds:
+        
+        if params_g["sweep"]:
+            run =  wandb.init(project=project_name, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
+            wandb.config.update(params_g)
+            params = wandb.config
+        else:
+            params=params_g
+            run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
+        
         # if running a sweep concatenate these parameters with those drawn by the agent
             
         wandb.run.tags = [f"fold_{fold}"]

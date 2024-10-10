@@ -35,6 +35,7 @@ sweep_config = {
         "batch_size": {"values": [8, 16, 32, 64, 128]},
         "seed": {"value": 47656344 % (58 + 1)},
         "sweep": {"value": True},
+        "fold": {"value": 3},
         "epochs": {"value":3000},
         "regularizer": {"distribution": "uniform", "min": 1e-4, "max": 1e-1},
         "batch_normalization": {"values": [True, False]},
