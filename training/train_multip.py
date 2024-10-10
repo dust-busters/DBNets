@@ -122,7 +122,7 @@ def train_core(params_g, data):
     if not params_g['sweep']:
         folds = [1,2,3,4,5]
     else:
-        folds = [params_g['fold']]
+        folds = [1]
         
     for fold in folds:
         
@@ -130,6 +130,7 @@ def train_core(params_g, data):
             run =  wandb.init(project=project_name, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
             wandb.config.update(params_g)
             params = wandb.config
+            fold = params['fold']
         else:
             params=params_g
             run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
