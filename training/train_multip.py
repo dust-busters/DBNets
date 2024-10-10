@@ -127,13 +127,13 @@ def train_core(params_g, data):
     for fold in folds:
         
         if params_g["sweep"]:
-            run =  wandb.init(project=project_name, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
+            run =  wandb.init(project=project_name, group=f'{params_g["name"]}', name=f'{params_g["name"]}.{fold}')
             wandb.config.update(params_g)
             params = wandb.config
             fold = params['fold']
         else:
             params=params_g
-            run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}.{params["time_id"]}', name=f'{params["name"]}.{fold}')
+            run =  wandb.init(project=project_name, config=params, group=f'{params["name"]}', name=f'{params["name"]}.{fold}')
         
         # if running a sweep concatenate these parameters with those drawn by the agent
             
