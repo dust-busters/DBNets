@@ -78,7 +78,7 @@ def train_sbi(params=global_params, sweep=True):
                 for k in data.keys():
                     logger.debug(f'data[{k}]: {data[k].shape}')
                     
-                if params["method"] == "method2":
+                if (params["method"] == "method2") or (params["method"]=="method3"):
                     data["targets"] = data["y"][:,params["inf_para"]]
                     all_data = concat_dict(all_data, data)
                     print(f"shape of y_pred, fold {fold+1}: {data['y_pred'].shape}")
@@ -134,6 +134,19 @@ def train_sbi(params=global_params, sweep=True):
             ].reshape(n_sim, -1)
             if params["concat_res"]:
                 features = np.concatenate([features, all_data["sigma"].reshape(-1, 1)], axis=1)
+            x = torch.tensor(
+                features,
+                dtype=torch.float32,
+            )
+            theta = torch.tensor(
+                all_data["targets"],
+                dtype=torch.float32,
+            )
+        elif params['method']=="method3":
+            n_sim = all_data["y_pred"].shape[0]
+            print(all_data['y_pred'].shape)
+            print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
+            features = all_data['y_pred']
             x = torch.tensor(
                 features,
                 dtype=torch.float32,
@@ -229,6 +242,24 @@ def train_sbi(params=global_params, sweep=True):
         ].reshape(n_sim, -1)
         if params["concat_res"]:
             features = np.concatenate([features, testing_data["sigma"].reshape(-1, 1)], axis=1)
+        x = torch.tensor(
+            features,
+            dtype=torch.float32,
+            device=params['device']
+        )
+        theta = torch.tensor(
+            testing_data["y"][:,params["inf_para"]],
+            dtype=torch.float32,
+            device=params['device']
+        )
+    elif params['method']=='method3':
+        
+        for k in testing_data.keys():
+            testing_data[k] = testing_data[k][::30]
+        
+        n_sim = testing_data["y_pred"].shape[0]
+        print(f'n_sim: {n_sim}, n_features: {params["npe_features"]}')
+        features = testing_data[f"y_pred"]
         x = torch.tensor(
             features,
             dtype=torch.float32,
