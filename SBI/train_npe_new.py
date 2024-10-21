@@ -402,7 +402,7 @@ def test(params, posteriors):
     axs[0].legend(title='Testing\nresolution', loc='upper left')
     wandb.log({f'sing_tarp': wandb.Image(fig)})
 
-def train_pipeline(params=params, sweep=False):
+def train_pipeline(params, sweep=False):
     wandbrun, params, out_folder = init(params=params, sweep=False)
     x, theta = load_data(params=params, sweep=False, wandbrun=wandbrun, out_folder=out_folder)
     result = train_sbi(x, theta, out_folder, params=params, sweep=True)
