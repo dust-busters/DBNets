@@ -165,7 +165,6 @@ def load_data(params=global_params, sweep=True ):
 
 
 def train_sbi(x, theta, out_folder, params=global_params, sweep=True):
-    __LABELS__ = __LABELS__[params['inf_para']]
     n_inf_para = len(params['inf_para'])
     out = []
     posteriors = []
@@ -325,7 +324,7 @@ def test(params, posteriors):
     mses = ((theta-medians[:,0,:])**2).mean(axis=(0), keepdims=False)
     stds = coll_samples.std(axis=1, keepdims=False).mean(axis=0, keepdims=False)
     for j,i in enumerate(params['inf_para']):
-        wandb.log({f'mse_{__LABELS__[i]}': mses[j], f'std_{__LABELS__[i]}': stds[j]})
+        wandb.log({f'mse_{__LABELS__[params["inf_para"]][i]}': mses[j], f'std_{__LABELS__[params["inf_para"]][i]}': stds[j]})
 
     #compute standard deviations for each dimension
 
