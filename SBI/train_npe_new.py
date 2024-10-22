@@ -404,7 +404,7 @@ def test(params, posteriors):
 
 def train_pipeline(params, sweep=False):
     wandbrun, params, out_folder = init(params=params, sweep=False)
-    x, theta = load_data(params=params, sweep=False, wandbrun=wandbrun, out_folder=out_folder)
+    x, theta = load_data(params=params, sweep=False)
     result = train_sbi(x, theta, out_folder, params=params, sweep=True)
     
 if __name__ == '__main__':
