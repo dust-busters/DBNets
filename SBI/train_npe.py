@@ -109,7 +109,7 @@ def train_sbi(params=global_params, sweep=True):
                     all_data = concat_dict(all_data, data)
                     del data_t
         if params['real_values']:
-            all_data['target'] = to_real(all_data['target'])
+            all_data['targets'] = to_real(all_data['targets'])
             
         # now all_data contains the test data to be used for training the maf NPE
 
