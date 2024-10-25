@@ -33,6 +33,11 @@ __LABELS__ = [
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='lastlog.log', encoding='utf-8', level=logging.DEBUG)
 
+def to_real(data):
+    nshape = len(data.shape)-1
+    mins_r = np.array([-4,0.03,-3,-5]).reshape(*np.ones(nshape).astype(int),4)
+    maxs_r = np.array([-2, 0.1, -1, -2]).reshape(*np.ones(nshape).astype(int),4)
+    return (data+1)*0.5*(maxs_r-mins_r) + mins_r
 
 def concat_dict(a, b):
     data = {}
@@ -65,6 +70,7 @@ def train_sbi(params=global_params, sweep=True):
         if sweep:
             wandb.config.update(params)
             params = wandb.config
+            
         #loading data for training NPE models
         logger.info(f"Loading data for training NPE, except for folder {params['test_fold']}")
         all_data = None
@@ -102,11 +108,13 @@ def train_sbi(params=global_params, sweep=True):
                     data["targets"] = target_test[:-1][:,params["inf_para"]]
                     all_data = concat_dict(all_data, data)
                     del data_t
-
+        if params['real_values']:
+            all_data['target'] = to_real(all_data['target'])
+            
         # now all_data contains the test data to be used for training the maf NPE
 
 
-        # preparing data for traininf MAF. COncatenating different resolutions.
+        # preparing data for traininf. COncatenating different resolutions.
         if params["method"] == "method1":
             n_sim = all_data["y_pred_r0.0"].shape[0]
             x = torch.tensor(
@@ -270,7 +278,9 @@ def train_sbi(params=global_params, sweep=True):
             dtype=torch.float32,
             device=params['device']
         )
-
+        
+    if params['real_values']:
+        theta = to_real(theta)
     #extract samples and test accuracy
     coll_samples = np.array([])
     for i in range(x.shape[0]):
