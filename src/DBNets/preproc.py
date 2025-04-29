@@ -100,8 +100,9 @@ def deproject_image(
     
     if mask:
         from scipy.ndimage import gaussian_filter
+        mask_res = original_res if not smooth else 0.125
         mask_polar = np.ones((128,384))
-        mask_cartesian = gaussian_filter(oofargo.warp_image_rolltodisk(mask_polar, target_image_size=(128,128), target_rmax=4, image_rmax=4),2)
+        mask_cartesian = gaussian_filter(oofargo.warp_image_rolltodisk(mask_polar, target_image_size=(128,128), target_rmax=4, image_rmax=4),mask_res)
         final_img = warped_img*mask_cartesian
 
     if smooth:
