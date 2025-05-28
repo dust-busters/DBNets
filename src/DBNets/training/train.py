@@ -2,15 +2,15 @@ from . import models
 import numpy as np
 import os
 import pickle
-import tensorflow as tf
+import tf_keras as tf
 import gc
 
 
 #this is needed because I am using the legacy optimizer
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
-from keras.optimizers.legacy import Adam
+from tf.optimizers.legacy import Adam
 
-class CustomLossFineTune(tf.keras.losses.Loss):
+class CustomLossFineTune(tf.losses.Loss):
   def __init__(self):
     super().__init__()
   def call(self, y_true, y_pred):
