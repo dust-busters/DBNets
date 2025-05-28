@@ -184,7 +184,7 @@ class discrete_marginalized_dist(rv_continuous):
     def __init__(self, pdfs, weights):
         super().__init__()
         self.pdfs = pdfs
-        self.weights = np.array(weights)
+        self.weights = np.array(weights)el install --user --name=myenv
 
     def _pdf(self, x):
         return np.average(np.array([p.pdf(x) for p in self.pdfs]), weights=self.weights)
@@ -245,7 +245,7 @@ class DBNets2:
         folds = range(1, 6)
         self.flows = []
         for fold in folds:
-            with open(f"{path_nf}.{fold}/debnets2/posterior.{fold}.pkl", "rb") as f:
+            with open(f"{path_nf}.{fold}/posterior.{fold}.pkl", "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
 
