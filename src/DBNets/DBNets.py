@@ -184,7 +184,7 @@ class discrete_marginalized_dist(rv_continuous):
     def __init__(self, pdfs, weights):
         super().__init__()
         self.pdfs = pdfs
-        self.weights = np.array(weights)el install --user --name=myenv
+        self.weights = np.array(weights)
 
     def _pdf(self, x):
         return np.average(np.array([p.pdf(x) for p in self.pdfs]), weights=self.weights)
