@@ -12,7 +12,7 @@ from tqdm import tqdm
 import pkg_resources
 import os
 import re
-from pdfclass import sum_of_norm, extract_prediction
+from .pdfclass import sum_of_norm, extract_prediction
 from operator import inv
 import numpy as np
 import pickle
@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 sys.path.append("../training")
-import training.models as models
+import DBNets.training.models2 as models
 import keras
 import tensorflow as tf
 from re import S
@@ -212,43 +212,57 @@ class summary_cnn:
                     custom_objects=custom_objs,
                 )
             )
+            
+        #turning off tanh activation of last layer
+        for i in range(5):
+            self.models[i].layers[-2].activation = None
 
     def get_model(self, fold):
         return self.models[fold - 1]
 
-    def __call__(self, image, sigma):
+    def __call__(self, image, sigma, augm=False, return_preactivated=False):
         x = tf.convert_to_tensor(image.reshape(1, 128, 128), dtype=tf.float32)
         mcdrop = 300
         sigma = np.repeat(sigma, mcdrop, axis=0).reshape(-1, 1)
         x = np.repeat(x, mcdrop, axis=0).reshape(-1, 128, 128, 1)
         # Compute predictions
         y_pred = [
-            model(x, res=sigma, training=False, no_smooth=True, mcdropout=True)
+            model(x, res=sigma, training=True, no_smooth=~augm, mcdropout=True)
             for model in self.models
         ]
         y_pred = np.concatenate(y_pred)
-        return y_pred
+        
+        if return_preactivated:
+            return np.tanh(y_pred), y_pred
+        else:
+            return np.tanh(y_pred)
 
 
 class DBNets2:
     
-    def __init__(self, path_nf="trained/nbestwithres", path_cnn='trained/dbnets2'):
+    def __init__(self, path_nf="trained/dbnets2/nbestwithres", path_cnn='trained/dbnets2'):
         self.loaded_models = summary_cnn(path=path_cnn)
         folds = range(1, 6)
         self.flows = []
         for fold in folds:
-            with open(f"{path_nf}.{fold}/posterior.{fold}.pkl", "rb") as f:
+            with open(f"{path_nf}.{fold}/debnets2/posterior.{fold}.pkl", "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
 
-    def __call__(self, images, sigma, nsamples=5000):
+    def __call__(self, images, sigma, nsamples=5000, augm=False, get_rej_metric=True):
         images = images.reshape(-1, 128, 128, 1)
         sigma = np.array(sigma)
         all_samples = []
+        rej_metrics = []
         for i, image in enumerate(images):
-            summary_stat = self.loaded_models(image.reshape(128, 128, 1), sigma[[i]])
+            summary_stat, ss_preact = self.loaded_models(image.reshape(128, 128, 1), sigma[[i]], augm, return_preactivated=True)
+            rej_metric = ss_preact
             summary_stat = np.concatenate([summary_stat.reshape(-1), (sigma[[i]])])
             self.nf.set_default_x(summary_stat)
             all_samples.append(self.nf.sample((nsamples,)))
+            rej_metrics.append(rej_metric)
 
-        return np.array(all_samples)
+        if get_rej_metric:
+            return np.array(all_samples), np.array(rej_metrics)
+        else:
+            return np.array(all_samples)
