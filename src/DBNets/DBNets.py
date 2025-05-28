@@ -245,7 +245,7 @@ class DBNets2:
         folds = range(1, 6)
         self.flows = []
         for fold in folds:
-            with open(f"{path_nf}.{fold}/posterior.{fold}.pkl", "rb") as f:
+            with open(f"{path_nf}/posterior.{fold}.pkl", "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
 
