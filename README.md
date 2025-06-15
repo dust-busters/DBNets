@@ -1,5 +1,5 @@
 ![icon](icon/vlr.png)
-# DBNets.0
+# DBNets2.0
 Dust Busters Nets 2.0 - Simulation-based inference pipeline for characterizing disc substructures and putative embedded planets.
 Unlike the first version this is only offered as a python library. DBNets2.0 introduces a powerful upgrade: it simultaneously fits the putative planet mass along with three additional disc properties that can degenerately lead to similar substructures.
 
@@ -40,4 +40,4 @@ Once this is done, it is possible to select the new kernel from any jupyter-note
 
 ## Tutorials
 
-There are some tutorial notebooks available in ![this repo](examples/). Stay tuned for more documentation and examples, or drop me an ![email](mailto:alessandro.ruzza@unimi.it)!
+There are some tutorial notebooks available in ![this repo](examples/). Stay tuned for more documentation and examples, or drop me an [email](mailto:alessandro.ruzza@unimi.it)!
