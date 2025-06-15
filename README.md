@@ -18,7 +18,7 @@ Check out the paper here: __available from monday 16th of Jun 2025__
 
 5) install the library with `pip install .`
 
-6) download the trained models from ![here](https://dbnets.fisica.unimi.it/dbnets2.0_models/dbnets2.0_models.tar.gz).
+6) download the trained models from [here](https://dbnets.fisica.unimi.it/dbnets2.0_models/dbnets2.0_models.tar.gz).
 
 If you encounter some errors following the previous instructions, you can try to install the package in a python enviroment. To do that, you can follow the instructions below.
 
