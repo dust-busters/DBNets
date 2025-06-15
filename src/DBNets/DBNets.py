@@ -12,6 +12,9 @@ from tqdm import tqdm
 import pkg_resources
 import os
 import re
+import copy
+
+from DBNets import utils
 from .pdfclass import sum_of_norm, extract_prediction
 from operator import inv
 import numpy as np
@@ -26,11 +29,12 @@ import tensorflow as tf
 from re import S
 from sbi.inference.posteriors import EnsemblePosterior
 import pickle
+import __confidence_score as cs
 
 
 class DBNets:
     """
-    Dust Busters Nets: ensemble of Convolutional Neural Networks trained to infer the mass of possible planets embedded in protoplanetary discs.
+    Dust Busters Nets 1.0: ensemble of Convolutional Neural Networks trained to infer the mass of possible planets embedded in protoplanetary discs.
     This class handles the ensemble allowing its application to observations. It can be used both with single or multiple images.
     Please note that in order to obtain reliable predictions the input image should be rescaled to match the scale, size and orientation of the images used to train the ensemble.
     We provide methods to do that through the submodule DBNets.preproc
@@ -239,8 +243,30 @@ class summary_cnn:
 
 
 class DBNets2:
+    """
+    Dust Busters Nets 2.0: SBI pipeline composed of CNNs + Normalising Flows trained to fit dust substructures in protoplanetary discs 
+    and infer the full posterior for some disc properties (alpha-viscosity, aspect ratio and dust stokes number) plus the mass of a putative embedded planet.
+    This class gives access to the full pipeline allowing its application to observations. It can be used both with single or multiple images.
+    Please note that in order to obtain reliable predictions the input image should be rescaled to match the scale, size and orientation of the images used to train the ensemble.
+    We provide methods to do that through the submodule DBNets.preproc
     
+    To use the pipeline create an object of this class and call it.
+
+    Methods:
+    -------------
+    plot_corners(savepaths, names, starmasses)
+        plot corner plots of the posteriors inferred during the last call
+    resample(nsamples)
+        resamples the posteriors inferred during the last call without recomputing the summary statistics for the input images
+        
+    """
     def __init__(self, path_nf="trained/dbnets2/nbestwithres", path_cnn='trained/dbnets2'):
+        '''
+            path_cnn: string
+                path to the trained CNN models used for extracting summary statistics
+            path_nf: string 
+                path to the trained Normalising Flows
+        '''
         self.loaded_models = summary_cnn(path=path_cnn)
         folds = range(1, 6)
         self.flows = []
@@ -248,21 +274,115 @@ class DBNets2:
             with open(f"{path_nf}/posterior.{fold}.pkl", "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
+        
+        self.last_images = None
+        self.last_res = None
+        self.last_samples_norm = None
+        self.last_samples_nonorm = None
+        self.last_posteriors = None
+        self.last_confscores = None
 
-    def __call__(self, images, sigma, nsamples=5000, augm=False, get_rej_metric=True):
+    def __call__(self, images, sigma, nsamples=5000, get_conf_score=True, get_posterior=False, return_normalized=False):
+        '''
+            images: array, shape=(N, 128,128,1) or (N,128,128) or (128,128)
+                deprojected and masked input observations
+            sigma: array, shape=(N)
+                resolution of the input observations. The major standard deviation of the beam Gaussian 
+                approximation expressed in units of the alleged planet location
+            nsamples: int
+                number of samples to sample from the inferred posterior(s)
+            get_conf_score: bool
+                returns the list of confidence scores together with samples or posteriors.
+                Note that if this is False confidence scores will be computed anyway and stored internally
+            get_posterior: bool
+                returns the posterior objects instead of samples from them
+            return_normalized: bool
+                wheter to return normalized or denormalized values for the samples
+        '''
+        #compute confidence score
+        if nsamples<10:
+            print('ERROR: Please sample at least 10 points.')
+            return None
+        
+        #run the data through the SBI pipeline
         images = images.reshape(-1, 128, 128, 1)
         sigma = np.array(sigma)
         all_samples = []
-        rej_metrics = []
+        posteriors = []
         for i, image in enumerate(images):
-            summary_stat, ss_preact = self.loaded_models(image.reshape(128, 128, 1), sigma[[i]], augm, return_preactivated=True)
-            rej_metric = ss_preact
+            summary_stat, ss_preact = self.loaded_models(image.reshape(128, 128, 1), sigma[[i]], return_preactivated=True)
             summary_stat = np.concatenate([summary_stat.reshape(-1), (sigma[[i]])])
-            self.nf.set_default_x(summary_stat)
-            all_samples.append(self.nf.sample((nsamples,)))
-            rej_metrics.append(rej_metric)
-
-        if get_rej_metric:
-            return np.array(all_samples), np.array(rej_metrics)
+            posteriors.append(copy.deepcopy(self.nf).set_default_x(summary_stat))
+            all_samples.append(posteriors[-1].sample((nsamples,)))
+        
+        all_samples = np.array(all_samples)
+        
+        conf_scores = cs.get_cs(images, all_samples, nsamples=10, mask_rin=0.5, mask_rout=3.0)
+        
+        #save everything in attributes
+        self.last_samples_norm = all_samples
+        self.last_images = images
+        self.last_res = sigma
+        self.last_confscores = conf_scores
+        self.last_posteriors = posteriors
+        
+        self.last_samples_nonorm = utils.to_real(all_samples, log=False)
+        
+        if get_posterior:
+            if get_conf_score:
+                #compute confidence score
+                return self.last_posteriors, np.array(conf_scores)
+            else:
+                return self.last_posteriors
         else:
-            return np.array(all_samples)
+            if not return_normalized:
+                all_samples = self.last_samples_nonorm
+            if get_conf_score:
+                #compute confidence score
+                return np.array(all_samples), np.array(conf_scores)
+            else:
+                return np.array(all_samples)
+
+    def plot_corners(self, savepaths=None, names=None, starmasses=None):
+        ''' Plot corner plots of the posteriors inferred during the last call
+        
+        --------
+        savepaths: string or list of strings or None
+            filenames for saving the plots. If None plots are shown but not saved
+        names: string or list of strings or None
+            names of the discs analysed. If None they will not be shown in the plots
+        starmasses: float or list of floats or None
+            masses of the central stars to rescale the planet mass and plot the result in physical units.
+            If None, mass ratios are shown instead.
+        '''
+        for el in [savepaths, names, starmasses]:
+            if el is None:
+                el = [None for i in range(self.last_samples_nonorm.shape[0])]
+            
+        utils.plot_corners(self.last_samples_nonorm, names, starmass=starmasses, savepath=savepaths, image=self.last_images)
+        
+    
+    def resample(self, nsamples):
+        ''' Resamples the posteriors computed during the last call.
+            New samples replace old ones. Confidence scores are also recomputed using the new samples.
+            ----------
+            nsamples: int
+                number of samples
+        '''
+        if self.last_posteriors is None:
+            print('No posteriors found in memory. You first have to run DBNets on some data.')
+            return None
+        
+        new_samples = []
+        for post in self.last_posteriors:
+            new_samples.append(post.sample((nsamples,)))
+        new_samples = np.array(new_samples)
+        
+        conf_scores = cs.get_cs(self.last_images, new_samples, nsamples=10, mask_rin=0.5, mask_rout=3.0)
+        
+        #save everything in attributes
+        self.last_samples_norm = new_samples
+        self.last_confscores = conf_scores
+        self.last_samples_nonorm = utils.to_real(new_samples, log=False)
+        
+        return new_samples

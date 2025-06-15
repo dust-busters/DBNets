@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("../training")
 
-def to_real(data, inv_st=True):
+def to_real(data, inv_st=True, log=True):
     nshape = len(data.shape) - 1
     mins_r = np.array([-4, 0.03, 1, -5]).reshape(*np.ones(nshape).astype(int), 4)
     maxs_r = np.array([-2, 0.1, 3, -2]).reshape(*np.ones(nshape).astype(int), 4)
@@ -15,17 +15,23 @@ def to_real(data, inv_st=True):
     if inv_st:
         rdata[:,2] = -rdata[:,2]
     
+    if not log:
+        for i in [0,2,3]:
+            rdata[:, i] = 10**rdata[:,i]
+            
     return rdata.reshape(*rsh)
 
-
-def plot_corner(final_samples, name, starmass=None, savepath='corner.pdf', image=None):
+def plot_corners():
+    
+def plot_corner(final_samples_nonorm, name, starmass=None, savepath='corner.pdf', image=None):
     
     if starmass==None:
         star_mass = 1.
     else:
         star_mass = starmass
         
-    final_samples_real = to_real(final_samples)[0]
+    final_samples_real = final_samples_nonorm
+    
     for i in [0,2,3]:
         final_samples_real[:, i] = 10**final_samples_real[:, i]
     final_samples_real[:,3] = final_samples_real[:,3]*star_mass*1047
@@ -109,5 +115,6 @@ def plot_corner(final_samples, name, starmass=None, savepath='corner.pdf', image
     #axs[1,3].text(0,0.5,np.concatenate(props))
     fig.set_size_inches(10, 10)
 
-    fig.savefig(savepath, dpi=500)
+    if savepath is not None:
+        fig.savefig(savepath, dpi=500)
     #opens the cnn for extracting summary statistics
