@@ -1,10 +1,12 @@
 ![icon](icon/vlr.png)
-# DBNets
-Dust Busters Nets - Ensemble of NNs trained to infer the mass of gap opening planets in protoplanetary discs
+# DBNets.0
+Dust Busters Nets 2.0 - Simulation-based inference pipeline for characterizing disc substructures and putative embedded planets.
+Unlike the first version this is only offered as a python library. DBNets2.0 introduces a powerful upgrade: it simultaneously fits the putative planet mass along with three additional disc properties that can degenerately lead to similar substructures.
+
+Check out the paper here: __available from monday 16th of Jun 2025__
+
 
 ## To install this library
-
-__Note__: the current version of this tool (DBNets 1.0.0) has been developed and tested with tensorflow<=2.15> and keras 2. The newest keras 3 is not currently supported.
 
 1) open a terminal
 
@@ -12,9 +14,11 @@ __Note__: the current version of this tool (DBNets 1.0.0) has been developed and
 
 2) enter the new directory with `cd DBNets`
    
-3) download all the lfs files with `git lfs pull` 
+3) switch to the correct branch with `git checkout dbnets2.0.0` 
 
 5) install the library with `pip install .`
+
+6) download the trained models from ![here](https://dbnets.fisica.unimi.it/dbnets2.0_models/dbnets2.0_models.tar.gz).
 
 If you encounter some errors following the previous instructions, you can try to install the package in a python enviroment. To do that, you can follow the instructions below.
 
@@ -34,4 +38,6 @@ To use the new enviroment within a jupyter-notebook, for instance for running th
 
 Once this is done, it is possible to select the new kernel from any jupyter-notebook.
 
+## Tutorials
 
+There are some tutorial notebooks available in ![this repo](examples/). Stay tuned for more documentation and examples, or drop me an ![email](mailto:alessandro.ruzza@unimi.it)!
