@@ -68,8 +68,11 @@ class LinearNDInterpolatorExt(object):
 
 
 #some fixed things
-training_set = np.load('training_set.npy')
-targ_red = np.load('red_targ.npy')
+import os
+traindata = os.path.join(os.path.dirname(__file__), "training_set.npy")
+redtarg = os.path.join(os.path.dirname(__file__), "red_targ.npy")
+training_set = np.load(traindata)
+targ_red = np.load(redtarg)
 nr = 50
 ntheta = 100
 x = y = np.linspace(-4,4,128)
