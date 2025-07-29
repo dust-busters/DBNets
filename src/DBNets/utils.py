@@ -21,9 +21,14 @@ def to_real(data, inv_st=True, log=True):
             
     return rdata.reshape(*rsh)
 
-def plot_corners():
+def plot_corners(final_samples_nonorm, name, starmass=None, savepath=None, image=None):
+    if len(final_samples_nonorm.shape)==2:
+        plot_corner(final_samples_nonorm, name, starmass, savepath, image)
+    elif len(final_samples_nonorm.shape)==3:
+        for i in range(final_samples_nonorm.shape[0]):
+            plot_corner(final_samples_nonorm[0], name[0], starmass[0], savepath[0], image[0])
     
-def plot_corner(final_samples_nonorm, name, starmass=None, savepath='corner.pdf', image=None):
+def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=None):
     
     if starmass==None:
         star_mass = 1.
