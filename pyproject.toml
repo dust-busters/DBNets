@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
   "numpy",
   "pandas",
-  "tensorflow<=2.15",
+  "tensorflow",
   "scipy",
   "tf_keras_vis",
   "tqdm",
