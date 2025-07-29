@@ -29,7 +29,7 @@ import tensorflow as tf
 from re import S
 from sbi.inference.posteriors import EnsemblePosterior
 import pickle
-import __confidence_score as cs
+import .__confidence_score as cs
 
 
 class DBNets:
