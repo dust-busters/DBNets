@@ -69,8 +69,11 @@ class LinearNDInterpolatorExt(object):
 
 #some fixed things
 import os
-traindata = os.path.join(os.path.dirname(__file__), "training_set.npy")
-redtarg = os.path.join(os.path.dirname(__file__), "red_targ.npy")
+from pathlib import Path
+DBNETS_CACHE = Path("~/.cache/DBNets").expanduser()
+traindata = DBNETS_CACHE / "training_set.npy"
+redtarg   = DBNETS_CACHE / "red_targ.npy"
+
 training_set = np.load(traindata)
 targ_red = np.load(redtarg)
 nr = 50
@@ -152,4 +155,4 @@ def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0):
 
 	print('DONE!')
 
-	return mse
+	return 1-mse

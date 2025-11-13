@@ -260,7 +260,7 @@ class DBNets2:
         resamples the posteriors inferred during the last call without recomputing the summary statistics for the input images
         
     """
-    def __init__(self, path_nf="trained/dbnets2/nbestwithres", path_cnn='trained/dbnets2'):
+    def __init__(self, path_nf="~/.cache/DBNets/dbnets2", path_cnn='~/.cache/DBNets/dbnets2/only4para2_long'):
         '''
             path_cnn: string
                 path to the trained CNN models used for extracting summary statistics
