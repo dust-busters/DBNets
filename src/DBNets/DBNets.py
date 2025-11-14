@@ -16,7 +16,7 @@ import re
 import copy
 from .paths import get_CNN_path, get_NF_path
 
-import .utils
+from . import utils as utils
 from .pdfclass import sum_of_norm, extract_prediction
 from operator import inv
 import numpy as np
@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 sys.path.append("../training")
-import .training.models2 as models
+import training.models2 as models
 import keras
 import tensorflow as tf
 from re import S
