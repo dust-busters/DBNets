@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 sys.path.append("../training")
-import training.models2 as models
+import .training.models2 as models
 import keras
 import tensorflow as tf
 from re import S
