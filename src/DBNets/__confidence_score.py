@@ -10,6 +10,8 @@ import numpy as np
 from scipy.interpolate import LinearNDInterpolator
 import scipy.sparse as sp
 
+from .paths import get_training_set_path, get_red_targ_path
+
 def get_griddata_sparse(old_coord, new_coord):
     
     #print('generating new interpolation function')
@@ -67,12 +69,8 @@ class LinearNDInterpolatorExt(object):
             return z
 
 
-#some fixed things
-import os
-from pathlib import Path
-DBNETS_CACHE = Path("~/.cache/DBNets").expanduser()
-traindata = DBNETS_CACHE / "training_set.npy"
-redtarg   = DBNETS_CACHE / "red_targ.npy"
+traindata = get_training_set_path()
+redtarg   = get_red_targ_path()
 
 training_set = np.load(traindata)
 targ_red = np.load(redtarg)
