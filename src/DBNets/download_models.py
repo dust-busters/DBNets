@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 import urllib.request
 import tarfile
+from .paths import get_data_dir
 
 
 def filename_from_url(url: str) -> str:
@@ -12,7 +13,7 @@ def filename_from_url(url: str) -> str:
     return name or "downloaded_file"
 
 
-def download_file(url: str, out_dir: Path):
+def download_file(url: str, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     filename = filename_from_url(url)
     dest = out_dir / filename
@@ -28,27 +29,22 @@ def download_file(url: str, out_dir: Path):
     return dest
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Download models used by DBNets2.0")
-    parser.add_argument(
-        "-p", "--save-path",
-        default="~/.cache/DBNets",
-        help="Directory to save files (default: ~/.cache/DBNets)",
-    )
-    args = parser.parse_args()
 
-    # Expand ~ and make sure directory exists
-    out_dir = Path(args.save_path).expanduser()
+def main():
+
+    out_dir = get_data_dir()
+
+    # Ensure directory exists
     out_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Saving files to: {out_dir}")
 
     files = ["red_targ.npy", "training_set.npy", "dbnets2.tar"]
 
     tar_path = None
+    base_url = "http://dbnets.fisica.unimi.it/dbnets2.0_models/data"
+
     for file in files:
-        dest = download_file(
-            f"http://dbnets.fisica.unimi.it/dbnets2.0_models/data/{file}",
-            out_dir,
-        )
+        dest = download_file(f"{base_url}/{file}", out_dir)
         if dest.name == "dbnets2.tar":
             tar_path = dest
 

@@ -10,9 +10,11 @@ from scipy.stats import norm
 from tf_keras_vis.saliency import Saliency
 from tqdm import tqdm
 import pkg_resources
+from pathlib import Path
 import os
 import re
 import copy
+from .paths import get_CNN_path, get_NF_path
 
 from DBNets import utils
 from .pdfclass import sum_of_norm, extract_prediction
@@ -199,7 +201,7 @@ class discrete_marginalized_dist(rv_continuous):
 
 class summary_cnn:
 
-    def __init__(self, path='trained/dbnets2'):
+    def __init__(self, path):
         self.models = []
         for fold in range(1, 6):
             custom_objs = {
@@ -208,10 +210,11 @@ class summary_cnn:
             custom_objs["fold_no"] = models.get_fold_metric(fold)
             custom_objs["batch_normalization"] = False
 
+            model_path = os.path.join(path, f"only4para2_long.{fold}.keras")
             # load model
             self.models.append(
                 keras.saving.load_model(
-                    f"{path}/only4para2_long.{fold}.keras",
+                    model_path,
                     compile=True,
                     custom_objects=custom_objs,
                 )
@@ -260,18 +263,21 @@ class DBNets2:
         resamples the posteriors inferred during the last call without recomputing the summary statistics for the input images
         
     """
-    def __init__(self, path_nf="~/.cache/DBNets/dbnets2", path_cnn='~/.cache/DBNets/dbnets2/only4para2_long'):
+    def __init__(self, path_nf=None, path_cnn=None):
         '''
             path_cnn: string
                 path to the trained CNN models used for extracting summary statistics
             path_nf: string 
                 path to the trained Normalising Flows
         '''
+        path_cnn = get_CNN_path() if path_cnn is None else Path(path_cnn)
         self.loaded_models = summary_cnn(path=path_cnn)
         folds = range(1, 6)
         self.flows = []
         for fold in folds:
-            with open(f"{path_nf}/posterior.{fold}.pkl", "rb") as f:
+            path_nf = get_NF_path() if path_nf is None else path_nf
+            path_nf = os.path.join(path_nf, f'posterior.{fold}.pkl')
+            with open(path_nf, "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
         
