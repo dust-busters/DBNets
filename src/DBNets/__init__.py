@@ -42,5 +42,5 @@ if not ("dbnets.download_models" in sys.argv[0] or
         "dbnets/download_models" in sys.argv[0] or
         "dbnets-download" in sys.argv[0]):
     _check_data_installed()
-    from DBNets import DBNets, DBNets2
+    from .DBNets import DBNets, DBNets2
 
