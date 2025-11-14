@@ -274,10 +274,10 @@ class DBNets2:
         self.loaded_models = summary_cnn(path=path_cnn)
         folds = range(1, 6)
         self.flows = []
+        path_nf = get_NF_path() if path_nf is None else path_nf
         for fold in folds:
-            path_nf = get_NF_path() if path_nf is None else path_nf
-            path_nf = os.path.join(path_nf, f'posterior.{fold}.pkl')
-            with open(path_nf, "rb") as f:
+            path_nf_s = os.path.join(path_nf, f'posterior.{fold}.pkl')
+            with open(path_nf_s, "rb") as f:
                 self.flows.append(pickle.load(f))
         self.nf = EnsemblePosterior(posteriors=self.flows)
         
