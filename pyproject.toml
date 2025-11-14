@@ -28,8 +28,7 @@ dependencies = [
   "opencv-python",
   "astropy",
   "platformdirs",
-  "matplotlib",
-  "keras_cv"
+  "matplotlib"
 ]
 
 [project.urls]
