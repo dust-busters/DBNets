@@ -1,5 +1,5 @@
 # imports
-import keras_cv
+
 from keras.layers import LayerNormalization
 from keras.layers import BatchNormalization
 from keras.layers import Conv2D
@@ -19,8 +19,6 @@ from keras.layers import Concatenate
 from keras.layers import GaussianNoise
 from keras.layers import Add
 from keras.layers import LeakyReLU
-from keras_cv.layers import RandomAugmentationPipeline
-from keras_cv.core import UniformFactorSampler
 import tensorflow as tf
 import numpy as np
 import keras
