@@ -29,7 +29,8 @@ dependencies = [
   "astropy",
   "platformdirs",
   "matplotlib",
-  "sbi"
+  "sbi",
+  "scikit-image"
 ]
 
 [project.urls]
