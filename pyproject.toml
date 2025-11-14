@@ -27,6 +27,7 @@ dependencies = [
   "tqdm",
   "opencv-python",
   "astropy",
+  "platformdirs"
 ]
 
 [project.urls]
