@@ -28,7 +28,7 @@ def plot_corners(final_samples_nonorm, name, starmass=None, savepath=None, image
         for i in range(final_samples_nonorm.shape[0]):
             plot_corner(final_samples_nonorm[0], name[0], starmass[0], savepath[0], image[0])
     
-def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=None):
+def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=None, logged_values=False, nbins=20):
     
     if starmass==None:
         star_mass = 1.
@@ -37,12 +37,14 @@ def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=
         
     final_samples_real = final_samples_nonorm
     
-    for i in [0,2,3]:
-        final_samples_real[:, i] = 10**final_samples_real[:, i]
-    final_samples_real[:,3] = final_samples_real[:,3]*star_mass*1047
+    if logged_values:
+        for i in [0,2,3]:
+            final_samples_real[:, i] = 10**final_samples_real[:, i]
 
-    mins_r = np.array([1e-4, 0.03, 1e-3, 1e-2])
-    maxs_r = np.array([1e-2, 0.1, 1e-1, 10])
+    final_samples_real[:,3] = final_samples_real[:,3]
+
+    mins_r = np.array([1e-4, 0.03, 1e-3, 1e-5*star_mass])
+    maxs_r = np.array([1e-2, 0.1, 1e-1, 1e-2*star_mass])
     fig, axs = plt.subplots(4, 4)
 
     __NICELABELS__ = ['$\\alpha$', '$h_0$', '$St$', '$M_p$']
@@ -59,20 +61,20 @@ def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=
         f'log $\\alpha$: ${np.log10(medians[0]):.2f}^'+'{+'+f'{np.log10(p84[0])-np.log10(medians[0]):.2f}'+'}_{-'+f'{np.log10(medians[0])-np.log10(p16[0]):.2f}'+'}$',
         f'$h_0$: ${medians[1]:.2f}^'+'{+'+f'{p84[1]-medians[1]:.2f}'+'}_{-'+f'{medians[1]-p16[1]:.2f}'+'}$',
         f'log $St$: ${np.log10(medians[2]):.2f}^'+'{+'+f'{np.log10(p84[2])-np.log10(medians[2]):.2f}'+'}_{-'+f'{np.log10(medians[2])-np.log10(p16[2]):.2f}'+'}$',
-        f'{__NICELABELS__[-1]}: ${medians[3]:.2f}^'+'{+'+f'{(p84[3]-medians[3]):.2f}'+'}_{-'+f'{(medians[3]-p16[3]):.2f}'+'}$ '+f'{mp_units}'
+        f'{__NICELABELS__[-1]}: ${medians[3]:.2}^'+'{+'+f'{(p84[3]-medians[3]):.2}'+'}_{-'+f'{(medians[3]-p16[3]):.2}'+'}$ '+f'{mp_units}'
     ]
 
     for i in range(4):
         for j in range(4):
             if i > j:
                 if j==1:
-                    binsx = np.linspace(mins_r[j], maxs_r[j], 50)
+                    binsx = np.linspace(mins_r[j], maxs_r[j], nbins)
                 else:
-                    binsx = np.logspace(np.log10(mins_r[j]), np.log10(maxs_r[j]), 50)
+                    binsx = np.logspace(np.log10(mins_r[j]), np.log10(maxs_r[j]), nbins)
                 if i==1:
-                    binsy = np.linspace(mins_r[i], maxs_r[i], 50)
+                    binsy = np.linspace(mins_r[i], maxs_r[i], nbins)
                 else:
-                    binsy = np.logspace(np.log10(mins_r[i]), np.log10(maxs_r[i]), 50)
+                    binsy = np.logspace(np.log10(mins_r[i]), np.log10(maxs_r[i]), nbins)
                 #computing the histogram for devs wrt median
                 axs[i,j].hist2d(
                 final_samples_real[:, j], final_samples_real[:, i], bins=(binsx, binsy), cmap='Grays'
@@ -95,13 +97,13 @@ def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=
                 if p84[i]<maxs_r[i]:
                     axs[i,j].axvline(p84[i], color='black', linestyle='dashed')
                 if i!=1:
-                    bins = np.logspace(np.log10(mins_r[i]), np.log10(maxs_r[i]), 50)
+                    bins = np.logspace(np.log10(mins_r[i]), np.log10(maxs_r[i]), nbins)
                     axs[i, j].hist(
                         final_samples_real[:, i], bins=bins, histtype="step", color="black", 
                     )
                     axs[i,j].set_xscale('log')
                 else:
-                    bins = np.linspace((mins_r[i]), (maxs_r[i]), 50)
+                    bins = np.linspace((mins_r[i]), (maxs_r[i]), nbins)
                     axs[i, j].hist(
                         final_samples_real[:, i], bins=bins, histtype="step", color="black", 
                     )
