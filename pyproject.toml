@@ -27,7 +27,8 @@ dependencies = [
   "tqdm",
   "opencv-python",
   "astropy",
-  "platformdirs"
+  "platformdirs",
+  "matplotlib"
 ]
 
 [project.urls]
