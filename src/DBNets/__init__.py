@@ -39,7 +39,8 @@ import sys
 
 # If running "python -m dbnets.download_models", skip check
 if not ("dbnets.download_models" in sys.argv[0] or
-        "dbnets/download_models" in sys.argv[0]):
+        "dbnets/download_models" in sys.argv[0] or
+        "dbnets-download" in sys.argv[0]):
     _check_data_installed()
     
 
