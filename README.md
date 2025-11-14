@@ -13,12 +13,10 @@ Check out the paper here: _available from monday 16th of Jun 2025_.
 2) clone the repository with `git clone https://github.com/dust-busters/DBNets.git` 
 
 2) enter the new directory with `cd DBNets`
-   
-3) switch to the correct branch with `git checkout dbnets2.0.0` 
 
-5) install the library with `pip install .`
+4) install the library with `pip install .`
 
-6) download the trained models from [here](https://dbnets.fisica.unimi.it/dbnets2.0_models/dbnets2.0_models.tar.gz).
+5) download the trained models using the provided script `dbnets-download`. It should be available from the terminal after the package is correctly installed.
 
 If you encounter some errors following the previous instructions, you can try to install the package in a python enviroment. To do that, you can follow the instructions below.
 
@@ -40,4 +38,7 @@ Once this is done, it is possible to select the new kernel from any jupyter-note
 
 ## Tutorials
 
-There are some tutorial notebooks available in ![this repo](examples/). Stay tuned for more documentation and examples, or drop me an [email](mailto:alessandro.ruzza@unimi.it)!
+There are some tutorial notebooks available in ![this repo](examples/).
+The notebook ![example_of_application_dbnets2.ipynb](examples/example_of_application_dbnets2.ipynb) contains a basic usage example of DBNets2.0.
+
+Stay tuned for more documentation and examples, or drop me an [email](mailto:alessandro.ruzza@unimi.it)!
