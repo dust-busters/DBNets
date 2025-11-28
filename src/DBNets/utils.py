@@ -41,7 +41,7 @@ def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=
         for i in [0,2,3]:
             final_samples_real[:, i] = 10**final_samples_real[:, i]
 
-    final_samples_real[:,3] = final_samples_real[:,3]
+    final_samples_real[:,3] = final_samples_real[:,3]*starmass
 
     mins_r = np.array([1e-4, 0.03, 1e-3, 1e-5*star_mass])
     maxs_r = np.array([1e-2, 0.1, 1e-1, 1e-2*star_mass])
