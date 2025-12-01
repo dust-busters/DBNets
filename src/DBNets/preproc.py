@@ -49,7 +49,7 @@ def deproject_image(
     new_img_size=(128,128),
     new_rrif_pxpos=16,
     mask=True,
-    smooth=True,
+    smooth=False,
     original_res=0
 ):
     
