@@ -36,6 +36,10 @@ def _check_data_installed():
 
 # Run check at import
 import sys
+import os
+import warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+warnings.filterwarnings("ignore")
 
 # If running "python -m dbnets.download_models", skip check
 if not ("dbnets.download_models" in sys.argv[0] or
