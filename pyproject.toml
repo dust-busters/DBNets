@@ -30,7 +30,8 @@ dependencies = [
   "platformdirs",
   "matplotlib",
   "sbi",
-  "scikit-image"
+  "scikit-image",
+  "pyro-ppl"
 ]
 
 [project.urls]
