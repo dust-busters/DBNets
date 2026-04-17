@@ -125,3 +125,13 @@ def plot_corner(final_samples_nonorm, name, starmass=None, savepath=None, image=
     if savepath is not None:
         fig.savefig(savepath, dpi=500)
     #opens the cnn for extracting summary statistics
+
+
+'''
+Convert beam size from arcseconds to cu (rp=1)
+and from fwhm to sigma
+distance is in parsecs, beam in arcseconds, rp in au
+'''
+def beam_to_cu(beam, distance, rp):  
+    beam_cu = (beam / 2.355) * (distance / rp)
+    return beam_cu
