@@ -92,7 +92,7 @@ polar_training_set = regrid(training_set.reshape(-1,128*128))  #--> shape (N_t, 
 interpolator = LinearNDInterpolatorExt(targ_red, polar_training_set)
 
 
-def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0):
+def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0, get_interp_data=False):
 	#load input and estimates data
 	print('loading all data and parameters')
 
@@ -103,7 +103,7 @@ def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0):
      
 	if len(input_data.shape) != 4:
 		print(f'Input data has shape {input_data.shape} which is wrong. Exiting...')
-		exit(1)
+		return None
 	else:
 	    N = input_data.shape[0]
 
@@ -115,15 +115,15 @@ def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0):
 			best_estimates = best_estimates.reshape(1,-1,4)
 	if len(best_estimates.shape) != 3:
 		print(f'Best estimates data has shape {best_estimates.shape} which is wrong. Exiting...')
-		exit(2)
+		return None
 
 	print('Sample 10 estimates from the posteriror distribution') #--> shape (nsamples, N, 4)
 	best_estimates = np.transpose(best_estimates, [1,0,2])
 	if best_estimates.shape[0] < nsamples:
 		print('Not enough samples from the inferred posterior! Exiting')
-		exit(2)
+		return None
 	elif best_estimates.shape[0] > nsamples:
-		indices = np.random.choice(best_estimates.shape[0], size=(10, *best_estimates.shape[1:]), replace=False)
+		indices = np.random.choice(best_estimates.shape[0], size=(nsamples, *best_estimates.shape[1:]), replace=False)
 		best_estimates_samples = np.take_along_axis(best_estimates, indices, axis=0)
 	else:
 		best_estimates_samples = best_estimates
@@ -153,4 +153,7 @@ def get_cs(input_data, estimates, nsamples=10, mask_rin=0.5, mask_rout=3.0):
 
 	print('DONE!')
 
-	return 1-mse
+	if get_interp_data:
+		return 1-mse, best_interp
+	else:
+		return 1-mse
