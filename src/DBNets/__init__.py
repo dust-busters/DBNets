@@ -1,4 +1,10 @@
 # __init__.py
+import os
+import warnings
+
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+warnings.filterwarnings("ignore")
+
 from pathlib import Path
 
 from .paths import (
