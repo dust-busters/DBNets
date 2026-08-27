@@ -113,3 +113,52 @@ def deproject_image(
     final_img = (final_img-final_img.mean())/final_img.std()
 	
     return final_img
+
+import cv2
+
+def augment(image, nx, ny, rmin, rmax, rtarget, slope):
+    
+    #create new grid of r
+    r = np.arange(rmin, rtarget, (rmax-rmin)/ny)
+    new_ny = len(r)
+    
+    #extrapolate profile
+    if new_ny < ny:
+        return image[:new_ny, :], new_ny
+    else:
+        padded_im = np.pad(image, ((0, new_ny-ny),(0,0)),'constant', constant_values=(0,))
+        rgrid = np.ones((new_ny, nx))*r.reshape(-1,1)
+        prof = image[-1, :]*(rgrid/rmax)**(-slope)*(np.arange(0,new_ny,1)>ny-1).astype(int).reshape(-1,1)
+        return prof+padded_im, new_ny
+
+def augment_and_warp(image, rtarg, nx, ny, rmin, rmax, slope):
+    im_data, new_ny = augment(image, nx, ny, rmin, rmax, rtarg, slope)
+    
+    img =  oofargo.warp_image_rolltodisk(im_data, nx, new_ny, image_rmax = rtarg, target_rmax=4, target_image_size=(1280,1280))
+    normalized = (img-img.mean())/(img.std())
+    #norm_noisy = np.array(GaussianNoise(0.1*normalized.max())(normalized, True))
+    #--> with gaussian filter
+        #img = gaussian_filter(cv2.resize(normalized, (128,128), interpolation=cv2.INTER_AREA), 2)  
+    #--> without gaussian filter
+    img = cv2.resize(normalized, (128,128), interpolation=cv2.INTER_AREA)
+    #imglog = img.copy()*(img>0.01).astype(int) + (img<=0.01).astype(int)*0.01
+    #imglog = (np.log10(imglog)+2)/2
+    return img
+
+from .training import radiative_transfer as rt
+import astropy.units as u
+def fargo_density_to_intensity_standard(filename, ntheta, nr, rin, rout, h0, fi, St, sigma_slope, ylog=True):
+    image = np.array(
+        rt.radiative_transfer(
+            filename,
+              ntheta,
+                nr,
+                  rout,
+                    h0,
+                      fi,
+                        St,
+                          sigma_slope,
+                            ylog=True)/u.K)
+    image_aw = augment_and_warp(image, 4, ntheta, nr, rin, rout, sigma_slope)
+
+    return image_aw
