@@ -17,7 +17,7 @@ def open_img(filename, ntheta=384, nr=128, image_rmin = 0.4, image_rmax=2.5, ylo
 ''' Warps disk image from polar to cartesian coordinates
     returns the image as narray.
 '''
-def warp_image_rolltodisk(data, ntheta=384, nr=128, image_rmin = 0.4, image_rmax=2.5, target_rmax=2.5, target_image_size=(200,200), ylog=False):
+def warp_image_rolltodisk2(data, ntheta=384, nr=128, image_rmin = 0.4, image_rmax=2.5, target_rmax=2.5, target_image_size=(200,200), ylog=False):
     
     #reading image
     if isinstance(data, str):
@@ -45,6 +45,40 @@ def warp_image_rolltodisk(data, ntheta=384, nr=128, image_rmin = 0.4, image_rmax
     rhoxy = cv2.warpPolar(rho2, target_image_size, (target_image_size[0]/2, target_image_size[1]/2), target_image_size[0]/2+1,cv2.WARP_INVERSE_MAP+cv2.WARP_FILL_OUTLIERS )
     
     return rhoxy
+
+
+import numpy as np
+from scipy.interpolate import RegularGridInterpolator
+
+def warp_image_rolltodisk(data, ntheta=384, nr=128, image_rmin=0.4, image_rmax=2.5,
+                          target_rmax=2.5, target_image_size=(200, 200), ylog=False,
+                          fill_value=0):
+    # reading image
+    if isinstance(data, str):
+        try:
+            rho = open_img(data, ntheta, nr, image_rmin=image_rmin,
+                           image_rmax=image_rmax, ylog=ylog)
+        except Exception:
+            return None
+    elif isinstance(data, np.ndarray):
+        rho = data
+    else:
+        raise TypeError("data must be a file path or a numpy array")
+
+    # source grid: rho is assumed to have shape (ntheta, nr)
+    r = np.linspace(image_rmin, image_rmax, nr)
+    theta = np.linspace(-np.pi, np.pi, ntheta)
+
+    # target Cartesian grid, shape (target_image_size[0], target_image_size[1])
+    x = np.linspace(-target_rmax, target_rmax, target_image_size[1])
+    y = np.linspace(-target_rmax, target_rmax, target_image_size[0])
+    xx, yy = np.meshgrid(x, y)
+
+    interpolator = RegularGridInterpolator((r, theta), rho,
+                                           bounds_error=False, fill_value=fill_value)
+    pts = np.stack([np.hypot(xx, yy).ravel(), np.arctan2(yy, xx).ravel()], axis=-1)
+    return interpolator(pts).reshape(xx.shape)
+
 
 
 ''' returns an azimuthally averaged profile
@@ -151,15 +185,10 @@ def get_gap_features(x, y, rmin=0.4, rmax=2.5, nr=128):
     return {'gap_width_1': gap_width_1, 'gap_width_2': gap_width_2, 'gap_depth_1': gap_depth_1, 'gap_depth_2': gap_depth_2}
 
 
-def logtolin(image, ymin, ymax, ny):
-    y_new_axis = np.linspace(ymin, ymax, ny)
-    y_old_axis = np.logspace(np.log10(ymin), np.log10(ymax), ny)
-    old_image = image
-    new_image = old_image.copy()
 
-    for j in range(old_image.shape[1]):
-        f = interpolate.interp1d(y_old_axis, old_image[:, j])
-        i = range(len(y_new_axis))
-        new_image[i, j] = f(y_new_axis)
-            
-    return new_image
+def logtolin(image, ymin, ymax, ny):
+    y_new = np.linspace(ymin, ymax, ny)
+    y_old = np.geomspace(ymin, ymax, image.shape[0])
+    f = interpolate.interp1d(y_old, image, axis=0,
+                             bounds_error=False, fill_value="extrapolate")
+    return f(y_new)

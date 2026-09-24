@@ -48,8 +48,12 @@ def radiative_transfer(data_path, index, i):
     fi = index.loc[i, 'FlaringIndex']
     St = index.loc[i, 'InvStokes1']**-1
     slope = index.loc[i, 'SigmaSlope']
-    
-    r = np.linspace(0.4, index.loc[i, 'rout'], index.loc[i, 'ny'].astype(int)).reshape(-1,1)
+
+    if 'rin' in index.columns():
+        rin = index.loc[i, 'rin']
+    else:
+        rin=0.4
+    r = np.linspace(rin, index.loc[i, 'rout'], index.loc[i, 'ny'].astype(int)).reshape(-1,1)
     r = r*np.ones((index.loc[i, 'ny'].astype(int), index.loc[i, 'nx'].astype(int) ))
     
     Td = ((mu*k.m_p/k.k_B)*(h0**2)*(k.G*m_star/r_planet)*(r**(2*fi-1))).to('K')
@@ -62,19 +66,21 @@ def radiative_transfer(data_path, index, i):
     return Ts
 
 
-def radiative_transfer(data_path, ntheta, nr, rout, h0, fi, St, sigma_slope, ylog=True):
+def radiative_transfer(data_path, ntheta, nr, rin, rout, h0, fi, St, sigma_slope, ylog=True):
     data = oofargo.open_img(data_path, 
                         ntheta=ntheta,
                         nr = nr,
                         image_rmax=rout,
+                        image_rmin=rin,
                         ylog=ylog)
+
     
     h0 = h0
     fi = fi
     St = St
     slope = sigma_slope
     
-    r = np.linspace(0.4, rout, nr).reshape(-1,1)
+    r = np.linspace(rin, rout, nr).reshape(-1,1)
     r = r*np.ones((nr, ntheta ))
     
     Td = ((mu*k.m_p/k.k_B)*(h0**2)*(k.G*m_star/r_planet)*(r**(2*fi-1))).to('K')

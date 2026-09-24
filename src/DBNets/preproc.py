@@ -134,7 +134,7 @@ def augment(image, nx, ny, rmin, rmax, rtarget, slope):
 def augment_and_warp(image, rtarg, nx, ny, rmin, rmax, slope):
     im_data, new_ny = augment(image, nx, ny, rmin, rmax, rtarg, slope)
     
-    img =  oofargo.warp_image_rolltodisk(im_data, nx, new_ny, image_rmax = rtarg, target_rmax=4, target_image_size=(1280,1280))
+    img =  oofargo.warp_image_rolltodisk(im_data, nx, new_ny, image_rmax = rmax, target_rmax=rtarg, target_image_size=(1280,1280))
     normalized = (img-img.mean())/(img.std())
     #norm_noisy = np.array(GaussianNoise(0.1*normalized.max())(normalized, True))
     #--> with gaussian filter
@@ -147,18 +147,26 @@ def augment_and_warp(image, rtarg, nx, ny, rmin, rmax, slope):
 
 from .training import radiative_transfer as rt
 import astropy.units as u
-def fargo_density_to_intensity_standard(filename, ntheta, nr, rin, rout, h0, fi, St, sigma_slope, ylog=True):
-    image = np.array(
+def fargo_density_to_intensity_standard(filename, ntheta, nr, rin, rout, h0, fi, St, sigma_slope, rp=1, ylog=True):
+    image = np.nan_to_num(np.array(
         rt.radiative_transfer(
             filename,
               ntheta,
                 nr,
+                rin,
                   rout,
                     h0,
                       fi,
                         St,
                           sigma_slope,
-                            ylog=True)/u.K)
-    image_aw = augment_and_warp(image, 4, ntheta, nr, rin, rout, sigma_slope)
-
-    return image_aw
+                            ylog=True)/u.K))
+    
+    img =  oofargo.warp_image_rolltodisk(image, ntheta, nr, image_rmax = rout/rp, image_rmin=rin/rp, target_rmax=4, target_image_size=(1280,1280))
+    normalized = (img-img.mean())/(img.std())
+    img = cv2.resize(normalized, (128,128), interpolation=cv2.INTER_AREA)
+    x = y = np.linspace(-4,4,128)
+    xx, yy = np.meshgrid(x, y)
+    rr = np.sqrt(xx**2+yy**2)
+    img2 = img*((rr>0.4)&(rr<4))
+    img_norm = (img2-img2.mean())/img2.std()
+    return img_norm
